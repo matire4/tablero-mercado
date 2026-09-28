@@ -1,0 +1,66 @@
+{
+  "now": "2026-09-25T22:30:00.000Z",
+  "derivadoDe": "argdatos-*-historico.json (fecha 2026-09-25); no es una respuesta real de DolarAPI",
+  "dolarapi": [
+    {
+      "moneda": "USD",
+      "casa": "oficial",
+      "nombre": "Oficial",
+      "compra": 1490,
+      "venta": 1540,
+      "fechaActualizacion": "2026-09-25T20:00:00.000Z"
+    },
+    {
+      "moneda": "USD",
+      "casa": "blue",
+      "nombre": "Blue",
+      "compra": 1540,
+      "venta": 1560,
+      "fechaActualizacion": "2026-09-25T20:00:00.000Z"
+    },
+    {
+      "moneda": "USD",
+      "casa": "bolsa",
+      "nombre": "Bolsa",
+      "compra": 1539,
+      "venta": 1545.6,
+      "fechaActualizacion": "2026-09-25T20:00:00.000Z"
+    },
+    {
+      "moneda": "USD",
+      "casa": "contadoconliqui",
+      "nombre": "Contado con liquidación",
+      "compra": 1615.3,
+      "venta": 1616.6,
+      "fechaActualizacion": "2026-09-25T20:00:00.000Z"
+    },
+    {
+      "moneda": "USD",
+      "casa": "mayorista",
+      "nombre": "Mayorista",
+      "compra": 1516.5,
+      "venta": 1525.5,
+      "fechaActualizacion": "2026-09-25T20:00:00.000Z"
+    },
+    {
+      "moneda": "USD",
+      "casa": "cripto",
+      "nombre": "Cripto",
+      "compra": 1611.8,
+      "venta": 1614.79,
+      "fechaActualizacion": "2026-09-25T20:00:00.000Z"
+    },
+    {
+      "moneda": "USD",
+      "casa": "tarjeta",
+      "nombre": "Tarjeta",
+      "compra": 1937,
+      "venta": 2002,
+      "fechaActualizacion": "2026-09-25T20:00:00.000Z"
+    }
+  ],
+  "riesgoUltimo": {
+    "valor": 609,
+    "fecha": "2026-09-25"
+  }
+}
