@@ -82,15 +82,18 @@ export function buildUrl(search: (typeof SEARCHES)[number], apiKey: string): str
   return `${GNEWS_URL}?${params.toString()}`;
 }
 
-/** Corre las búsquedas fijas y mezcla los resultados por fecha descendente. Falla solo si fallan todas. */
+/**
+ * Corre las búsquedas fijas EN SECUENCIA y mezcla los resultados por fecha descendente. Falla solo si fallan todas.
+ * Secuencial y no en paralelo: el 28/09 dos requests simultáneas con la misma key dieron un 429 en una de ellas
+ * (docs/ai-log.md). Con la cache de 45 min, el costo es ~600 ms extra una vez cada 45 min.
+ */
 export async function fetchNews(apiKey: string | undefined): Promise<Result<NewsItem[]>> {
   if (!apiKey) return fail('upstream', 'Falta NEWS_API_KEY en el server');
-  const results = await Promise.all(
-    SEARCHES.map(async (s) => {
-      const res = await fetchJson<unknown>(buildUrl(s, apiKey), { revalidate: GNEWS_REVALIDATE });
-      return res.ok ? normalizeNews(res.data, s.lang) : res;
-    }),
-  );
+  const results: Result<NewsItem[]>[] = [];
+  for (const s of SEARCHES) {
+    const res = await fetchJson<unknown>(buildUrl(s, apiKey), { revalidate: GNEWS_REVALIDATE });
+    results.push(res.ok ? normalizeNews(res.data, s.lang) : res);
+  }
   const okOnes = results.filter((r): r is Extract<Result<NewsItem[]>, { ok: true }> => r.ok);
   if (okOnes.length === 0) return results[0];
   const merged = okOnes.flatMap((r) => r.data).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));

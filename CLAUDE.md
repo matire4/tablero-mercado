@@ -44,5 +44,6 @@ URL pública: https://tablero-mercado.vercel.app (deploy automático en cada pus
 - Pegar en docs/ai-log.md las entradas del PO y la corrección del Tech Lead sobre el reloj del fixture. Completar docs/horas.md.
 - Paso b) fixtures: hecho. c) business-days + change + market-status con tests: hecho (30 tests en verde). d) scaffold + deploy: hecho (28/09).
 - Capa de datos: hecha (68 tests en verde, `npm run check`). DolarAPI: /v1/dolares verificado (200); /api/dolares da 404.
-- Siguiente: route handlers (/api/quotes, /api/history/[asset], /api/news) y verificación del Data Cache con errores.
+- Route handlers: hechos y probados en local con datos reales; cache verificada (28/09). GNews en secuencia.
+- Siguiente: cargar NEWS_API_KEY en Vercel y verificar /api/* en la URL pública; después UI.
 - Verificar en Vercel que el proyecto usa Node.js 22 o 24 (aviso: builds con Node 20 fallan desde el 30/09).

@@ -54,3 +54,9 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 **Por qué estaba mal:** error de tipos; en runtime `undefined.slice` rompía las tres pruebas de `getQuotes`.
 **Cómo lo detecté:** `npx tsc --noEmit` lo marcó antes de correr los tests; Vitest no chequea tipos.
 **Qué hice:** corregido. Regla nueva: `tsc --noEmit` siempre antes de `npm test`; queda en el script `check` de package.json.
+
+## 2026-09-28 · Tech Lead
+**Qué propuso:** las dos búsquedas a GNews (es + en) en paralelo con `Promise.all`.
+**Por qué estaba mal:** en la primera prueba real, la búsqueda en español dio HTTP 429 mientras la de inglés dio 200, con menos de 10 requests usadas en el día. Hipótesis: el plan gratis no admite requests simultáneas con la misma key. El tablero igual respondió `ok` solo con las notas en inglés (la degradación por fuente funcionó).
+**Cómo lo detecté:** logging de fetches de Next en desarrollo (`logging.fetches` en next.config.ts).
+**Qué hice:** búsquedas secuenciales. Al repetir, la misma búsqueda en español dio 200 (la de inglés salió de cache, así que la prueba no fue del todo limpia). Se da por resuelto; si reaparece un 429 aislado, el tablero lo absorbe igual.

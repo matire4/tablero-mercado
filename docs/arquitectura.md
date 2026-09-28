@@ -244,7 +244,7 @@ Los tres devuelven **siempre HTTP 200 con el `Result` en el body**. El error de 
 
 **Timeout y errores.** `fetch-json.ts` es el único lugar que hace `fetch` a un proveedor: `AbortSignal.timeout(5000)`; timeout → `timeout`; HTTP 429 → `rate-limited`; otro ≥ 400 → `upstream`; body vacío o `[]` → `empty`; JSON que no cumple la forma esperada → `invalid`. Los adaptadores solo normalizan campos. Así el manejo de errores se escribe y se testea una sola vez.
 
-**A verificar con un test:** que el Data Cache de Next no retenga respuestas con status ≥ 400 del proveedor. Si las retiene, un 429 quedaría "pegado" durante la ventana; la mitigación sería `cache: 'no-store'` condicional.
+**Verificado en desarrollo el 28/09** con `logging.fetches`: la segunda llamada a `/api/quotes` dentro de los 60 s resuelve los 8 fetches a proveedores desde cache (139 ms contra 2,4 s). Un 429 de GNews no quedó cacheado: la siguiente request volvió a salir al proveedor.
 
 ---
 
@@ -299,6 +299,8 @@ Opciones descartadas: solo español con 20 min (72/día; pierde las noticias en 
 
 **Por qué no un segundo proveedor para repartir la cuota.** Sumar otra API de noticias resuelve el límite pero duplica el costo de mantenimiento: dos adaptadores, dos formatos de respuesta, dos límites de uso, dos claves, dos fuentes de error, y notas duplicadas entre fuentes que habría que deduplicar. El límite de 100/día es un problema de plan, no de arquitectura: si el producto avanza, se paga el plan de GNews (que además elimina la demora de 12 h) y el código no cambia. Preferimos un proveedor bien manejado a dos a medias.
 
+Las dos búsquedas se hacen **en secuencia**, no en paralelo: en la primera prueba real, dos requests simultáneas con la misma key dieron un 429 (ver `ai-log.md`).
+
 Por qué 45 min no empeora la frescura: las noticias del plan gratis llegan con 12 horas de demora; refrescar cada 20 min en vez de cada 45 no las acerca al presente, solo gasta cuota.
 
 Consecuencias: cada nota muestra "publicada hace X h" y el tablero nunca presenta noticias como última hora. La demora va a `docs/riesgos.md` y se cuenta en la demo.
@@ -335,4 +337,3 @@ Formato de respuesta verificado en `raw/gnews-search.json` (ver §3). `NewsItem.
 
 ## 13. Pendientes que este documento deja abiertos
 
-- Confirmar con un test el comportamiento del Data Cache ante respuestas de error.
