@@ -66,3 +66,9 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 **Por qué estaba mal:** con la búsqueda amplia (OR) de producción entraron notas de política, cultura y crédito etiquetadas como `mercados`. El producto dice "filtradas por temas fijos"; el comodín lo rompía.
 **Cómo lo detecté:** yo, leyendo la primera respuesta real de `/api/news` en la URL pública.
 **Qué hice:** las notas sin tema se descartan y `mercados` requiere palabras explícitas. Menos notas, pertinentes. Documentado en riesgos.md y arquitectura.md §10.
+
+## 2026-09-28 · Tech Lead (diseño)
+**Qué propuso:** un primer mockup plano y "cuadrado", y después tres paletas pastel.
+**Por qué estaba mal:** no era lo que el dueño del producto tenía en la cabeza (referencia: el mockup del Asistente Contable, oscuro y con movimiento). Dos vueltas de mockup antes de acertar.
+**Cómo lo detecté:** lo dijo Mati al ver cada versión.
+**Qué hice:** preguntar antes de dibujar la tercera (tema, forma, qué se anima) y recién ahí armar la v2, que se aprobó. Lección: para lo visual, preguntar referencia antes de proponer.

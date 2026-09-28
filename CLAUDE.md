@@ -24,6 +24,16 @@ URL pública: https://tablero-mercado.vercel.app (deploy automático en cada pus
 - Estimación congelada en docs/estimaciones.md. Palancas de recorte en orden: (1) brecha sin serie en gráfico, (2) sin 90 días, (3) mercado cerrado sin feriados.
 - Descartadas con motivo en docs/producto.md.
 
+### Diseño y alcance de UI (cerrado 28/09, mockup aprobado en Claude Design)
+- Estética: fondo carbón con manchas de color desenfocadas que se mueven lento, paneles de vidrio (backdrop-filter), acento salmón, línea de brecha violeta punteada. Tipografías Sora (títulos/números) e Inter Tight (secundario).
+- Tema claro y oscuro: por defecto sigue la preferencia del sistema; botón para cambiarlo, persistido en el navegador.
+- Alcance NUEVO respecto de producto.md, aceptado con su costo (3–4 h; desarrollo pasa a 16–23 h, total realista 33–36):
+  - Animación de entrada "puertas" de 0,8 s, solo la primera vez por sesión, con el tablero ya cargado detrás. No bloquea datos.
+  - Tarjetas entran escalonadas (80 ms entre cada una); el gráfico se dibuja al cambiar activo o rango.
+  - Tutorial de 4 pasos con foco sobre la interfaz (valor y hora · brecha · mercado cerrado · noticias con demora). Se abre solo la primera vez o desde el botón "¿Cómo leer esto?".
+- Todo movimiento respeta prefers-reduced-motion. Vidrio y desenfoque limitados a paneles visibles; si un celular viejo se traba, se baja el desenfoque, no se saca el diseño.
+- Sigue vigente: variación y brecha sin flechas ni verde/rojo; números en formato es-AR; datos cada 60 s, "hace X min" cada 30 s.
+
 ### Arquitectura (detalle en docs/arquitectura.md)
 - Carga de datos: client components con fetch a los route handlers; QuoteGrid refresca /api/quotes cada 60 s.
 - Estado de mercado: un solo MarketStatus en QuotesResponse.market, no por Quote.
@@ -47,5 +57,5 @@ URL pública: https://tablero-mercado.vercel.app (deploy automático en cada pus
 - Route handlers: hechos y probados en local con datos reales; cache verificada (28/09). GNews en secuencia.
 - NEWS_API_KEY cargada en Vercel; /api/quotes, /api/history y /api/news verificados en la URL pública (28/09). docs/riesgos.md iniciado con lo detectado en desarrollo.
 - Pendiente: confirmar en los logs de Vercel por qué la búsqueda en inglés no devolvió notas en la primera respuesta.
-- Siguiente: UI (tarjetas → gráfico → noticias).
+- Siguiente: UI en este orden: tarjetas + estados + banner + tema → gráfico con brecha → noticias → entrada + tutorial → README.
 - Verificar en Vercel que el proyecto usa Node.js 22 o 24 (aviso: builds con Node 20 fallan desde el 30/09).
