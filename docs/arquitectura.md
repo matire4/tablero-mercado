@@ -47,7 +47,7 @@ flowchart LR
   D -.->|USE_MOCK_DATA=true| FX
   D --> DA & AD & NW
   DA & AD & NW --> FJ
-  FJ -->|"Data Cache de Next<br/>60 s / 20 min / 24 h"| E1 & E2 & E3
+  FJ -->|"Data Cache de Next<br/>60 s / 45 min / 24 h"| E1 & E2 & E3
 ```
 
 Tres reglas que ordenan todo:
@@ -214,7 +214,7 @@ Los tres devuelven **siempre HTTP 200 con el `Result` en el body**. El error de 
 |---|---|---|---|---|
 | `GET /api/quotes` | `QuotesResponse` | `ok` con datos parciales | por activo | `s-maxage=60, stale-while-revalidate=300` si todos `ok`; `no-store` si alguno falló |
 | `GET /api/history/[asset]?range=7\|30\|90` | `Result<HistoryResponse>` | `ok: true, series: []` | `ok: false` | `s-maxage=3600` |
-| `GET /api/news` | `Result<{ items: NewsItem[]; fetchedAt }>` | `ok: true, items: []` | `ok: false` | `s-maxage=1200` |
+| `GET /api/news` | `Result<{ items: NewsItem[]; fetchedAt }>` | `ok: true, items: []` | `ok: false` | `s-maxage=2700` |
 
 "Sin datos" y "error" son valores distintos a propósito: son dos de los cuatro estados de UI que el producto exige visibles y distintos (H0-6).
 
@@ -235,7 +235,7 @@ Los tres devuelven **siempre HTTP 200 con el `Result` en el body**. El error de 
 |---|---|---|
 | Cotizaciones (DolarAPI, riesgo país último) | 60 s | Decisión de producto. |
 | Histórico (serie completa) | 24 h | Serie diaria de 0,4-0,5 MB por request; una vez por día alcanza. |
-| Noticias (GNews) | 20 min | Plan gratis: 100 requests/día. 20 min → máximo 72/día. |
+| Noticias (GNews) | 45 min | Plan gratis: 100 requests/día; dos búsquedas (es + en) cada 45 min → 64/día. |
 | Feriados | 24 h | Cambia pocas veces al año. |
 
 `USE_MOCK_DATA=true` saltea ambas capas y sirve fixtures.
@@ -261,7 +261,7 @@ La usan `market-status.ts` (para saber si hay mercado y cuál fue el último cie
 
 ### Variación del día (`change.ts`)
 
-*(Regla en revisión el 28/09; ver `CLAUDE.md`.)* Propuesta vigente: `changePct` compara el valor actual contra **la última entrada del histórico con fecha anterior a la fecha del dato actual**. Para el dólar (serie calendario completa) eso es la entrada de ayer, que en un domingo ya lleva el cierre del viernes; para riesgo país (solo hábiles) es la rueda anterior. No necesita lógica de días hábiles.
+**Regla (cerrada el 28/09):** `changePct` compara el valor actual contra **la última entrada del histórico con fecha anterior a la fecha del dato actual**. Para el dólar (serie calendario completa) eso es la entrada de ayer, que en un domingo ya lleva el cierre del viernes; para riesgo país (solo hábiles) es la rueda anterior. No necesita lógica de días hábiles.
 
 Historia de la regla, para `uso-de-ia.md`: primero se propuso "contra ayer" (falla: el lunes contra el domingo parecía dar 0 % siempre); después "contra el último valor distinto" (falla: en rachas sin movimiento compara contra varias ruedas atrás); después "contra el día hábil anterior" (falla: los crudos de oficial y MEP muestran que la entrada del sábado ya trae el cierre del viernes, así que el lunes daría un movimiento que no ocurrió). La regla vigente sale de mirar los cuatro históricos, no uno. Tests: lunes, día después de feriado, día normal, sin movimiento (0 %), sin dato anterior (`null`).
 
@@ -293,7 +293,13 @@ Se ejecutan solo en el server, en `data.ts`: `getQuotes` llena `gapVsOficial` de
 
 **Elegido:** GNews, plan gratis. 100 requests/día; las noticias llegan con **12 horas de demora** en el plan gratis (confirmado en su dashboard y en el crudo: la nota más nueva tenía ~32 h).
 
-**Presupuesto de requests (en revisión el 28/09; ver `CLAUDE.md`):** una request por tema y por idioma (12 por refresco) no entra en 100/día con ninguna cache razonable. Propuesta: **una búsqueda por idioma** con operadores OR (`dólar OR BCRA OR inflación OR "riesgo país" OR Fed OR mercados`, y su equivalente en inglés), tema asignado localmente por palabra clave en el título, y cache de 45 min → 2 × 32 = 64 requests/día, con margen para desarrollo. En desarrollo, `USE_MOCK_DATA=true` por defecto para no gastar cuota.
+**Presupuesto de requests (cerrado el 28/09).** Una búsqueda es una request, y `lang` acepta un solo valor por request (verificado en la doc), así que una request por tema y por idioma (12 por refresco) no entra en 100/día con ninguna cache razonable. Decisión: **una búsqueda por idioma** con operadores OR (`dólar OR BCRA OR inflación OR "riesgo país" OR Fed OR mercados`, y su equivalente en inglés), tema asignado localmente por palabra clave en el título, y cache de **45 min** → 2 × 32 = 64 requests/día, con 36 de margen para desarrollo y demo. En desarrollo, `USE_MOCK_DATA=true` por defecto para no gastar cuota.
+
+Opciones descartadas: solo español con 20 min (72/día; pierde las noticias en inglés del alcance base); español + inglés con 30 min (96/día; sin margen: un dev server con datos reales pasa el límite).
+
+**Por qué no un segundo proveedor para repartir la cuota.** Sumar otra API de noticias resuelve el límite pero duplica el costo de mantenimiento: dos adaptadores, dos formatos de respuesta, dos límites de uso, dos claves, dos fuentes de error, y notas duplicadas entre fuentes que habría que deduplicar. El límite de 100/día es un problema de plan, no de arquitectura: si el producto avanza, se paga el plan de GNews (que además elimina la demora de 12 h) y el código no cambia. Preferimos un proveedor bien manejado a dos a medias.
+
+Por qué 45 min no empeora la frescura: las noticias del plan gratis llegan con 12 horas de demora; refrescar cada 20 min en vez de cada 45 no las acerca al presente, solo gasta cuota.
 
 Consecuencias: cada nota muestra "publicada hace X h" y el tablero nunca presenta noticias como última hora. La demora va a `docs/riesgos.md` y se cuenta en la demo.
 
@@ -329,6 +335,4 @@ Formato de respuesta verificado en `raw/gnews-search.json` (ver §3). `NewsItem.
 
 ## 13. Pendientes que este documento deja abiertos
 
-- Decisión: regla definitiva de `changePct` (§8).
-- Decisión: presupuesto de requests a GNews y cache de noticias (§10).
 - Confirmar con un test el comportamiento del Data Cache ante respuestas de error.

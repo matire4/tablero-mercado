@@ -11,11 +11,13 @@ Día 0 de 10 (día 0 = 28/09; entrega 08/10). Horas usadas: 8.5 aprox. (ver docs
 - Feature 2 (solo especificada): detalle por activo.
 - Alcance base: 5 tarjetas + gráfico histórico (línea de venta, 7/30/90, un activo por vez) + tablero de noticias (temas fijos, local e internacional, idioma marcado) + 4 estados de UI (carga, error, sin datos, mercado cerrado) + "actualizado hace X min" + disclaimer + modo mock + responsive.
 - Estado mercado cerrado: ventana única lunes a viernes 10-18 hs Argentina + feriados nacionales. Fuera de ventana, tarjetas muestran último valor y "Último cierre: día y hora". La app sigue consultando; solo cambia la presentación.
-- Stack: Next.js (App Router) + TypeScript + Vercel, sin Tailwind. Claves solo en route handlers del server, nunca en cliente.
+- Stack: Next.js 16.3 (App Router) + TypeScript + Vercel, sin Tailwind. Claves solo en route handlers del server, nunca en cliente.
+- Next 16 cambió el modelo de cache: NO usamos `cacheComponents` ni `use cache`. Usamos el modelo previo: `fetch` con `next: { revalidate: N }` (verificado en node_modules/next/dist/docs/01-app/02-guides/caching-without-cache-components.md). Antes de escribir código de Next, leer la doc local, no la memoria del modelo.
 - APIs: DolarAPI (cotizaciones; MEP se llama `bolsa`), ArgentinaDatos (riesgo país, histórico, feriados), GNews (noticias, plan gratis, 100 req/día, 12 h de demora). Formatos reales en src/lib/fixtures/raw/; los adaptadores se escriben contra esos archivos, no contra la doc.
-- Cache: 60 s cotizaciones, 20 min noticias, 24 h histórico, 24 h feriados con fallback a fixture.
+- Cache: 60 s cotizaciones, 45 min noticias, 24 h histórico, 24 h feriados con fallback a fixture.
+- Noticias (cerrado 28/09): GNews plan gratis, UNA búsqueda por idioma (es + en) con operadores OR y tema asignado localmente por palabra clave; cache 45 min → 64 requests/día de 100. Se descartó agregar un segundo proveedor para repartir la cuota: dos APIs son dos adaptadores, dos formatos, dos límites y dos claves que mantener, y el mismo problema se resuelve pagando el plan de GNews si el producto avanza. En desarrollo, USE_MOCK_DATA=true por defecto para no gastar cuota.
 - Histórico: el server pide la serie completa una vez por día y la recorta POR FECHA a los últimos 90 días calendario antes de mandarla al cliente (decidido el 28/09; se descartó recortar por cantidad de registros porque las series tienen calendarios distintos y 31 registros no cubrían el selector de 90 días).
-- Variación del día: EN REVISIÓN (28/09). Se había cerrado "contra el cierre del día hábil anterior"; los crudos de oficial y MEP muestran que la entrada del sábado ya trae el cierre del viernes, así que esa regla inventaría un movimiento el lunes. Propuesta del Tech Lead: contra la última entrada del histórico con fecha anterior a la del dato actual. Pendiente de OK.
+- Variación del día (cerrado 28/09): contra la última entrada del histórico con fecha anterior a la del dato actual. Se descartaron "contra ayer", "último valor distinto" y "día hábil anterior" (historia en arquitectura.md §8 y ai-log.md). No usa lógica de días hábiles; business-days.ts queda solo para el estado de mercado.
 - Activos del dashboard (lista cerrada): blue, MEP, oficial, tarjeta, riesgo país. Segundo nivel solo en feature 2. Merval y acciones: afuera.
 - Estimación congelada en docs/estimaciones.md. Palancas de recorte en orden: (1) brecha sin serie en gráfico, (2) sin 90 días, (3) mercado cerrado sin feriados.
 - Descartadas con motivo en docs/producto.md.
@@ -37,8 +39,5 @@ Día 0 de 10 (día 0 = 28/09; entrega 08/10). Horas usadas: 8.5 aprox. (ver docs
 - Los docs viven en /docs con los nombres ya definidos.
 
 ## Pendiente
-- Decidir regla definitiva de changePct (ver arquitectura.md §8).
-- Decidir presupuesto GNews: una búsqueda por idioma con OR + cache 45 min (propuesta) u otra opción (ver arquitectura.md §10). Si cambia, actualizar la línea de cache de arriba.
-- Borrar raw/argdatos-turista-historico.json y raw/argdatos-solidario-historico.json (404 y serie muerta).
 - Pegar en docs/ai-log.md las entradas del PO y la corrección del Tech Lead sobre el reloj del fixture. Completar docs/horas.md.
-- Paso b) fixtures: hecho (scripts/build-fixtures.mjs). c) business-days + change + market-status con tests. d) scaffold + deploy "hola".
+- Paso b) fixtures: hecho. c) business-days + change + market-status con tests: hecho (30 tests en verde). d) scaffold: hecho; falta deploy "hola" en Vercel.
