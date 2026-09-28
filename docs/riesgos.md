@@ -8,6 +8,7 @@ La matriz completa (riesgo, probabilidad, impacto, mitigación) la arma el rol Q
 **Qué pasó:** en la primera respuesta real de `/api/news` en producción entraron notas de política ("A Milei la política no le sienta"), cultura ("La venta de libros crece 3,9 %") y crédito ("Morosidad…"), todas etiquetadas como tema `mercados`. El tema `mercados` funcionaba como comodín para cualquier nota que no matcheara otro tema, y la búsqueda de GNews con operadores OR es amplia.
 **Impacto:** alto para la confianza del usuario: el producto promete "noticias económicas filtradas por temas fijos" y mostraba ruido. Es lo primero que un gerente señalaría en la demo.
 **Mitigación implementada:** las notas que no matchean ningún tema fijo se descartan, y `mercados` requiere palabras explícitas (Merval, bolsa, acciones, bonos, Wall Street, FMI, mercados). Consecuencia: menos notas (5–7 por idioma en vez de 10), todas pertinentes. Código en `src/lib/providers/news.ts`, `TOPIC_RULES`.
+**Segunda vuelta (mismo día):** con el filtro activo, la búsqueda en inglés quedó vacía: GNews matcheaba las palabras en título *y descripción*, y el filtro local solo mira el título. Se agregó `in=title` a la búsqueda (verificado en la doc de GNews) y palabras clave financieras en inglés.
 **Riesgo residual:** el filtro es por palabra clave en el título; puede descartar una nota pertinente con título ambiguo o dejar pasar una que use la palabra en otro sentido ("bolsa de trabajo"). Se documenta como aproximación.
 
 ### 2026-09-28 · Concentración de fuente (todas las notas de Clarín)

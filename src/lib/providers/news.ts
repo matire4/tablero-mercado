@@ -11,8 +11,8 @@ export const GNEWS_MAX = 10;
 
 /** Búsquedas fijas. `lang` acepta un solo valor por request (verificado en la doc). */
 export const SEARCHES: Array<{ lang: 'es' | 'en'; q: string; country?: string }> = [
-  { lang: 'es', country: 'ar', q: 'dólar OR BCRA OR inflación OR "riesgo país" OR Fed OR mercados' },
-  { lang: 'en', q: '"Argentina" AND (peso OR "central bank" OR inflation OR "country risk" OR Fed OR markets)' },
+  { lang: 'es', country: 'ar', q: 'dólar OR BCRA OR inflación OR "riesgo país" OR Fed OR mercados OR bonos OR Merval' },
+  { lang: 'en', q: 'Argentina AND (peso OR "central bank" OR inflation OR "country risk" OR bonds OR IMF OR debt OR markets OR economy)' },
 ];
 
 /**
@@ -23,11 +23,11 @@ export const SEARCHES: Array<{ lang: 'es' | 'en'; q: string; country?: string }>
  */
 export const TOPIC_RULES: Array<{ topic: NewsTopic; pattern: RegExp }> = [
   { topic: 'riesgo-pais', pattern: /riesgo pa[ií]s|country risk/i },
-  { topic: 'bcra', pattern: /\bbcra\b|banco central|central bank|reservas/i },
+  { topic: 'bcra', pattern: /\bbcra\b|banco central|central bank|reservas|\bbanks?\b/i },
   { topic: 'fed', pattern: /\bfed\b|reserva federal|federal reserve|powell/i },
   { topic: 'inflacion', pattern: /inflaci[oó]n|inflation|\bipc\b|\bcpi\b|precios al consumidor/i },
   { topic: 'dolar', pattern: /d[oó]lar|dollar|\bpeso\b|\bblue\b|\bmep\b|\bccl\b|cepo|brecha|tipo de cambio/i },
-  { topic: 'mercados', pattern: /merval|wall street|\bbolsa\b|acciones|\bbonos?\b|\bstocks?\b|\bbonds?\b|\bs&p\b|nasdaq|\bfmi\b|\bimf\b|mercados? financieros?|markets?\b/i },
+  { topic: 'mercados', pattern: /merval|wall street|\bbolsa\b|acciones|\bbonos?\b|\bstocks?\b|\bbonds?\b|\bs&p\b|nasdaq|\bfmi\b|\bimf\b|mercados? financieros?|markets?\b|\bdebt\b|investors|\beconomy\b|\brates?\b|\bdeuda\b/i },
 ];
 
 export function assignTopic(title: string): NewsTopic | null {
@@ -81,7 +81,8 @@ export function normalizeNews(raw: unknown, lang: 'es' | 'en'): Result<NewsItem[
 }
 
 export function buildUrl(search: (typeof SEARCHES)[number], apiKey: string): string {
-  const params = new URLSearchParams({ q: search.q, lang: search.lang, max: String(GNEWS_MAX), apikey: apiKey });
+  // in=title: que GNews matchee las palabras solo en el título, el mismo campo que filtra assignTopic (verificado en la doc).
+  const params = new URLSearchParams({ q: search.q, lang: search.lang, in: 'title', max: String(GNEWS_MAX), apikey: apiKey });
   if (search.country) params.set('country', search.country);
   return `${GNEWS_URL}?${params.toString()}`;
 }
