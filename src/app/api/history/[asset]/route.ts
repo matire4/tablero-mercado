@@ -21,6 +21,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ asse
 
   const body = await getHistory(asset as AssetId, rangeParam as Range);
   return Response.json(body, {
-    headers: { 'Cache-Control': body.ok ? 'public, s-maxage=3600, stale-while-revalidate=3600' : 'no-store' },
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': body.ok ? 'public, s-maxage=3600, stale-while-revalidate=3600' : 'no-store',
+    },
   });
 }

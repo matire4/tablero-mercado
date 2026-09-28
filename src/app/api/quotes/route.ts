@@ -11,6 +11,7 @@ export async function GET() {
   const allOk = Object.values(body.quotes).every((q) => q.ok);
   return Response.json(body, {
     headers: {
+      'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': allOk && !body.mock ? 'public, s-maxage=60, stale-while-revalidate=300' : 'no-store',
     },
   });

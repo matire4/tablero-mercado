@@ -7,6 +7,9 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const body = await getNews();
   return Response.json(body, {
-    headers: { 'Cache-Control': body.ok ? 'public, s-maxage=2700, stale-while-revalidate=2700' : 'no-store' },
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': body.ok ? 'public, s-maxage=2700, stale-while-revalidate=2700' : 'no-store',
+    },
   });
 }
