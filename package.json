@@ -1,0 +1,15 @@
+{
+  "name": "tablero-mercado",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "fixtures": "node scripts/build-fixtures.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5",
+    "vitest": "^3"
+  }
+}
