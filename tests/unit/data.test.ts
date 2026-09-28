@@ -68,9 +68,10 @@ describe('getHistory en modo mock', () => {
 });
 
 describe('getNews en modo mock', () => {
-  it('devuelve las 10 notas del fixture con tema asignado', async () => {
+  it('devuelve las notas del fixture que entran en los temas fijos', async () => {
     const r = await getNews(mock('normal'));
-    expect(r.ok && r.data.items.length).toBe(10);
+    expect(r.ok && r.data.items.length).toBeGreaterThan(0);
+    expect(r.ok && r.data.sources).toEqual({ ok: 1, total: 1 });
     expect(r.ok && r.data.items.every((n) => typeof n.topic === 'string')).toBe(true);
   });
 });

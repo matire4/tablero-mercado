@@ -10,7 +10,7 @@ import { fail, ok } from './result';
 import type { AssetId, HistoryPoint, HistoryResponse, MarketStatus, NewsItem, Quote, QuotesResponse, Result } from './types';
 import { fetchDolares, normalizeDolares } from './providers/dolarapi';
 import { fetchFeriados, fetchHistorico, fetchRiesgoUltimo, normalizeFeriados, normalizeHistorico, normalizeRiesgoUltimo } from './providers/argentinadatos';
-import { fetchNews, normalizeNews } from './providers/news';
+import { fetchNews, normalizeNews, type NewsResult } from './providers/news';
 
 import feriadosFixture from './fixtures/feriados.json';
 import newsFixture from './fixtures/news.json';
@@ -143,8 +143,14 @@ export async function getHistory(asset: AssetId, range: 7 | 30 | 90, cfg: DataCo
   return ok({ asset, range, series, gapSeries, market: getMarketStatus(now, holidays, source) });
 }
 
-export async function getNews(cfg: DataConfig = configFromEnv()): Promise<Result<{ items: NewsItem[]; fetchedAt: string }>> {
+export type NewsResponse = NewsResult & { fetchedAt: string };
+
+export async function getNews(cfg: DataConfig = configFromEnv()): Promise<Result<NewsResponse>> {
   const now = nowFor(cfg);
-  const res = cfg.mock ? normalizeNews(newsFixture, 'es') : await fetchNews(cfg.newsApiKey);
-  return res.ok ? ok({ items: res.data, fetchedAt: now.toISOString() }) : res;
+  if (cfg.mock) {
+    const res = normalizeNews(newsFixture, 'es');
+    return res.ok ? ok({ items: res.data, sources: { ok: 1, total: 1 }, fetchedAt: now.toISOString() }) : res;
+  }
+  const res = await fetchNews(cfg.newsApiKey);
+  return res.ok ? ok({ ...res.data, fetchedAt: now.toISOString() }) : res;
 }

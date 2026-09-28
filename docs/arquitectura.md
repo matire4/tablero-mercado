@@ -299,7 +299,9 @@ Opciones descartadas: solo español con 20 min (72/día; pierde las noticias en 
 
 **Por qué no un segundo proveedor para repartir la cuota.** Sumar otra API de noticias resuelve el límite pero duplica el costo de mantenimiento: dos adaptadores, dos formatos de respuesta, dos límites de uso, dos claves, dos fuentes de error, y notas duplicadas entre fuentes que habría que deduplicar. El límite de 100/día es un problema de plan, no de arquitectura: si el producto avanza, se paga el plan de GNews (que además elimina la demora de 12 h) y el código no cambia. Preferimos un proveedor bien manejado a dos a medias.
 
-Las dos búsquedas se hacen **en secuencia**, no en paralelo: en la primera prueba real, dos requests simultáneas con la misma key dieron un 429 (ver `ai-log.md`).
+Las dos búsquedas se hacen **en secuencia con 1 s de pausa**, no en paralelo: en la primera prueba real, dos requests simultáneas con la misma key dieron un 429 (ver `ai-log.md`). Si una búsqueda falla, la respuesta lleva `sources: { ok, total }` y el route handler no deja que el CDN la cachee.
+
+**Filtro por temas fijos (decisión del 28/09).** La primera respuesta real en producción trajo notas de política y cultura etiquetadas como `mercados`, porque ese tema era el comodín para lo que no matcheaba nada. Ahora una nota que no matchea ningún tema fijo **se descarta**, y `mercados` requiere palabras explícitas (Merval, bolsa, acciones, bonos, Wall Street, FMI, mercados). Resultado: menos notas, todas dentro de lo que el producto promete. Detalle y riesgo residual en `docs/riesgos.md`.
 
 Por qué 45 min no empeora la frescura: las noticias del plan gratis llegan con 12 horas de demora; refrescar cada 20 min en vez de cada 45 no las acerca al presente, solo gasta cuota.
 

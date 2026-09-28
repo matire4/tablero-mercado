@@ -17,20 +17,22 @@ export const SEARCHES: Array<{ lang: 'es' | 'en'; q: string; country?: string }>
 
 /**
  * Asignación de tema por palabra clave en el título. Orden = prioridad: la primera que matchea gana.
+ * Una nota que no matchea NINGÚN tema se descarta (decisión del 28/09: el tablero muestra solo los temas fijos;
+ * antes `mercados` era comodín y entraban notas de política o cultura). `mercados` requiere palabras explícitas.
  * Es una aproximación, documentada como tal; no afirma relación causal entre noticia y precio.
  */
 export const TOPIC_RULES: Array<{ topic: NewsTopic; pattern: RegExp }> = [
   { topic: 'riesgo-pais', pattern: /riesgo pa[ií]s|country risk/i },
-  { topic: 'bcra', pattern: /\bbcra\b|banco central|central bank/i },
+  { topic: 'bcra', pattern: /\bbcra\b|banco central|central bank|reservas/i },
   { topic: 'fed', pattern: /\bfed\b|reserva federal|federal reserve|powell/i },
-  { topic: 'inflacion', pattern: /inflaci[oó]n|inflation|\bipc\b|\bcpi\b/i },
-  { topic: 'dolar', pattern: /d[oó]lar|dollar|\bpeso\b|blue|\bmep\b|\bccl\b|cepo|brecha/i },
-  { topic: 'mercados', pattern: /./ },
+  { topic: 'inflacion', pattern: /inflaci[oó]n|inflation|\bipc\b|\bcpi\b|precios al consumidor/i },
+  { topic: 'dolar', pattern: /d[oó]lar|dollar|\bpeso\b|\bblue\b|\bmep\b|\bccl\b|cepo|brecha|tipo de cambio/i },
+  { topic: 'mercados', pattern: /merval|wall street|\bbolsa\b|acciones|\bbonos?\b|\bstocks?\b|\bbonds?\b|\bs&p\b|nasdaq|\bfmi\b|\bimf\b|mercados? financieros?|markets?\b/i },
 ];
 
-export function assignTopic(title: string): NewsTopic {
+export function assignTopic(title: string): NewsTopic | null {
   for (const rule of TOPIC_RULES) if (rule.pattern.test(title)) return rule.topic;
-  return 'mercados';
+  return null;
 }
 
 interface GNewsArticle {
@@ -63,6 +65,8 @@ export function normalizeNews(raw: unknown, lang: 'es' | 'en'): Result<NewsItem[
   const items: NewsItem[] = [];
   for (const a of (raw as { articles: unknown[] }).articles) {
     if (!isArticle(a)) continue;
+    const topic = assignTopic(a.title);
+    if (!topic) continue; // fuera de los temas fijos
     items.push({
       id: a.id,
       title: a.title,
@@ -70,7 +74,7 @@ export function normalizeNews(raw: unknown, lang: 'es' | 'en'): Result<NewsItem[
       publishedAt: a.publishedAt,
       url: a.url,
       lang,
-      topic: assignTopic(a.title),
+      topic,
     });
   }
   return ok(items); // lista vacía es "sin datos", no error
@@ -82,20 +86,29 @@ export function buildUrl(search: (typeof SEARCHES)[number], apiKey: string): str
   return `${GNEWS_URL}?${params.toString()}`;
 }
 
+export interface NewsResult {
+  items: NewsItem[];
+  /** Cuántas búsquedas salieron bien. Si ok < total, la lista está incompleta y el route handler no la deja cachear. */
+  sources: { ok: number; total: number };
+}
+
+/** Espera entre búsquedas. GNews plan gratis devolvió 429 a requests simultáneas (28/09). */
+export const GNEWS_DELAY_MS = 1000;
+
 /**
- * Corre las búsquedas fijas EN SECUENCIA y mezcla los resultados por fecha descendente. Falla solo si fallan todas.
- * Secuencial y no en paralelo: el 28/09 dos requests simultáneas con la misma key dieron un 429 en una de ellas
- * (docs/ai-log.md). Con la cache de 45 min, el costo es ~600 ms extra una vez cada 45 min.
+ * Corre las búsquedas fijas EN SECUENCIA, con una pausa entre ellas, y mezcla los resultados por fecha descendente.
+ * Falla solo si fallan todas; si falla alguna, `sources.ok < sources.total`.
  */
-export async function fetchNews(apiKey: string | undefined): Promise<Result<NewsItem[]>> {
+export async function fetchNews(apiKey: string | undefined, delayMs = GNEWS_DELAY_MS): Promise<Result<NewsResult>> {
   if (!apiKey) return fail('upstream', 'Falta NEWS_API_KEY en el server');
   const results: Result<NewsItem[]>[] = [];
-  for (const s of SEARCHES) {
+  for (const [i, s] of SEARCHES.entries()) {
+    if (i > 0 && delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
     const res = await fetchJson<unknown>(buildUrl(s, apiKey), { revalidate: GNEWS_REVALIDATE });
     results.push(res.ok ? normalizeNews(res.data, s.lang) : res);
   }
   const okOnes = results.filter((r): r is Extract<Result<NewsItem[]>, { ok: true }> => r.ok);
-  if (okOnes.length === 0) return results[0];
-  const merged = okOnes.flatMap((r) => r.data).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-  return ok(merged);
+  if (okOnes.length === 0) return results[0] as Result<never>;
+  const items = okOnes.flatMap((r) => r.data).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  return ok({ items, sources: { ok: okOnes.length, total: SEARCHES.length } });
 }

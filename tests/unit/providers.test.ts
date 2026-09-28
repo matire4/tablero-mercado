@@ -70,9 +70,15 @@ describe('GNews', () => {
     expect(assignTopic('Dólar blue hoy: a cuánto cotiza')).toBe('dolar');
     expect(assignTopic('Wall Street cierra mixto')).toBe('mercados');
   });
-  it('normaliza la respuesta real', () => {
+  it('sin ningún tema → null (se descarta; mercados no es comodín)', () => {
+    expect(assignTopic('El milagro español: la venta de libros crece un 3,9%')).toBeNull();
+    expect(assignTopic('A Milei la política no le sienta')).toBeNull();
+    expect(assignTopic('Morosidad: una de cada tres entidades que dan créditos')).toBeNull();
+  });
+  it('normaliza la respuesta real y descarta las notas fuera de tema', () => {
     const n = normalizeNews(gnews, 'es');
-    expect(n.ok && n.data.length).toBe(10);
+    expect(n.ok && n.data.length).toBeLessThanOrEqual(10);
+    expect(n.ok && n.data.length).toBeGreaterThan(0);
     expect(n.ok && n.data[0]).toMatchObject({ source: 'Clarin', lang: 'es', publishedAt: '2026-09-27T07:00:06Z', topic: 'dolar' });
   });
   it('sin articles → invalid; articles vacío → ok con lista vacía (sin datos, no error)', () => {
@@ -95,19 +101,20 @@ describe('GNews', () => {
           new URL(request.url).searchParams.get('lang') === 'en' ? new HttpResponse(null, { status: 429 }) : HttpResponse.json(gnews),
         ),
       );
-      const res = await fetchNews('clave-de-prueba');
-      expect(res.ok && res.data.length).toBe(10);
-      expect(res.ok && res.data.every((n) => n.lang === 'es')).toBe(true);
+      const res = await fetchNews('clave-de-prueba', 0);
+      expect(res.ok && res.data.sources).toEqual({ ok: 1, total: 2 });
+      expect(res.ok && res.data.items.every((n) => n.lang === 'es')).toBe(true);
     });
     it('las dos fallan → error', async () => {
       server.use(http.get(GNEWS_URL, () => new HttpResponse(null, { status: 429 })));
-      expect(await fetchNews('clave-de-prueba')).toMatchObject({ ok: false, error: { kind: 'rate-limited' } });
+      expect(await fetchNews('clave-de-prueba', 0)).toMatchObject({ ok: false, error: { kind: 'rate-limited' } });
     });
     it('mezcla ordenada por fecha descendente', async () => {
       server.use(http.get(GNEWS_URL, () => HttpResponse.json(gnews)));
-      const res = await fetchNews('clave-de-prueba');
-      const fechas = res.ok ? res.data.map((n) => n.publishedAt) : [];
-      expect(fechas.length).toBe(20);
+      const res = await fetchNews('clave-de-prueba', 0);
+      const fechas = res.ok ? res.data.items.map((n) => n.publishedAt) : [];
+      expect(res.ok && res.data.sources).toEqual({ ok: 2, total: 2 });
+      expect(fechas.length).toBeGreaterThan(0);
       expect([...fechas].sort().reverse()).toEqual(fechas);
     });
   });
