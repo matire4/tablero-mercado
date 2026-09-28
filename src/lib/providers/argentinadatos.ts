@@ -1,0 +1,88 @@
+// Adaptador ArgentinaDatos: riesgo país (último y serie), históricos de dólar, feriados.
+// Formatos reales verificados en src/lib/fixtures/raw/argdatos-*.json. Paths confirmados en la doc del proveedor.
+
+import { fetchJson } from '../fetch-json';
+import { fail, ok } from '../result';
+import type { AssetId, HistoryPoint, Quote, Result } from '../types';
+
+export const ARGDATOS_BASE = 'https://api.argentinadatos.com/v1';
+export const REVALIDATE_ULTIMO = 60;
+export const REVALIDATE_HISTORICO = 86400;
+export const REVALIDATE_FERIADOS = 86400;
+
+/** activo propio → casa en ArgentinaDatos (histórico de dólares). */
+const ASSET_TO_CASA: Record<Exclude<AssetId, 'riesgo-pais'>, string> = {
+  oficial: 'oficial',
+  blue: 'blue',
+  mep: 'bolsa',
+  tarjeta: 'tarjeta',
+};
+
+const isRecord = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null;
+const isIsoDate = (x: unknown): x is string => typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x);
+
+// ---------- Riesgo país ----------
+
+export function normalizeRiesgoUltimo(raw: unknown): Result<Quote> {
+  if (!isRecord(raw) || typeof raw.valor !== 'number' || !isIsoDate(raw.fecha)) {
+    return fail('invalid', 'Riesgo país: se esperaba { valor: number, fecha: YYYY-MM-DD }');
+  }
+  return ok({
+    asset: 'riesgo-pais',
+    label: 'Riesgo país',
+    unit: 'puntos',
+    buy: null,
+    sell: raw.valor,
+    changePct: null,
+    gapVsOficial: null,
+    // El proveedor da solo la fecha: se fija a medianoche hora Argentina y se marca sin hora.
+    updatedAt: `${raw.fecha}T00:00:00-03:00`,
+    updatedAtHasTime: false,
+    source: 'ArgentinaDatos',
+  });
+}
+
+export async function fetchRiesgoUltimo(): Promise<Result<Quote>> {
+  const res = await fetchJson<unknown>(`${ARGDATOS_BASE}/finanzas/indices/riesgo-pais/ultimo`, { revalidate: REVALIDATE_ULTIMO });
+  return res.ok ? normalizeRiesgoUltimo(res.data) : res;
+}
+
+// ---------- Históricos ----------
+
+/** Serie de riesgo país ({ valor, fecha }) o de dólar ({ compra, venta, fecha }) → HistoryPoint[]. */
+export function normalizeHistorico(raw: unknown, valueField: 'venta' | 'valor'): Result<HistoryPoint[]> {
+  if (!Array.isArray(raw)) return fail('invalid', 'Histórico: se esperaba una lista');
+  const points: HistoryPoint[] = [];
+  for (const item of raw) {
+    if (!isRecord(item) || !isIsoDate(item.fecha) || typeof item[valueField] !== 'number') continue;
+    points.push({ date: item.fecha, value: item[valueField] as number });
+  }
+  if (points.length === 0) return fail('empty', 'Histórico sin puntos válidos');
+  return ok(points);
+}
+
+export function historicoUrl(asset: AssetId): string {
+  return asset === 'riesgo-pais'
+    ? `${ARGDATOS_BASE}/finanzas/indices/riesgo-pais`
+    : `${ARGDATOS_BASE}/cotizaciones/dolares/${ASSET_TO_CASA[asset]}`;
+}
+
+/** Trae la serie COMPLETA (0,4-0,5 MB) con cache de 24 h. El recorte por fecha lo hace lib/data.ts. */
+export async function fetchHistorico(asset: AssetId): Promise<Result<HistoryPoint[]>> {
+  const res = await fetchJson<unknown>(historicoUrl(asset), { revalidate: REVALIDATE_HISTORICO });
+  return res.ok ? normalizeHistorico(res.data, asset === 'riesgo-pais' ? 'valor' : 'venta') : res;
+}
+
+// ---------- Feriados ----------
+
+export function normalizeFeriados(raw: unknown): Result<string[]> {
+  if (!Array.isArray(raw)) return fail('invalid', 'Feriados: se esperaba una lista');
+  const fechas = raw.filter((f) => isRecord(f) && isIsoDate(f.fecha)).map((f) => (f as { fecha: string }).fecha);
+  if (fechas.length === 0) return fail('empty', 'Feriados sin fechas válidas');
+  return ok(fechas);
+}
+
+export async function fetchFeriados(year: number): Promise<Result<string[]>> {
+  const res = await fetchJson<unknown>(`${ARGDATOS_BASE}/feriados/${year}`, { revalidate: REVALIDATE_FERIADOS });
+  return res.ok ? normalizeFeriados(res.data) : res;
+}

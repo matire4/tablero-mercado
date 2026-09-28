@@ -48,3 +48,9 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 **Por qué estaba mal:** el plan gratis de GNews da 100 requests/día y una búsqueda es una request; 12 búsquedas cada 20 min son 864/día. Ni con una búsqueda por idioma (144/día) entraba. Yo había fijado los 20 min sin hacer la cuenta.
 **Cómo lo detecté:** el Tech Lead hizo la cuenta al leer el crudo de GNews; verificamos en la doc que `lang` acepta un solo valor por request.
 **Qué hice:** opciones con trade-offs en arquitectura.md §10; decisión pendiente.
+
+## 2026-09-28 · Tech Lead
+**Qué propuso:** en `data.ts`, leer `q.updatedAt` donde `q` es un `Result<Quote>` (el dato está en `q.data`).
+**Por qué estaba mal:** error de tipos; en runtime `undefined.slice` rompía las tres pruebas de `getQuotes`.
+**Cómo lo detecté:** `npx tsc --noEmit` lo marcó antes de correr los tests; Vitest no chequea tipos.
+**Qué hice:** corregido. Regla nueva: `tsc --noEmit` siempre antes de `npm test`; queda en el script `check` de package.json.

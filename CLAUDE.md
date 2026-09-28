@@ -4,6 +4,8 @@
 Fase actual: desarrollo (producto cerrado el 26/09/2026; arquitectura aprobada el 27/09, revisada el 28/09 con formatos reales).
 Día 0 de 10 (día 0 = 28/09; entrega 08/10). Horas usadas: 8.5 aprox. (ver docs/horas.md) de 28 (escenario realista declarado: 30-32).
 
+URL pública: https://tablero-mercado.vercel.app (deploy automático en cada push a main).
+
 ## Decisiones cerradas (no reabrir sin avisarme)
 - Usuario: cliente minorista argentino de un banco, sin formación financiera, celular y escritorio. App standalone embebible; sin login ni datos personales.
 - Problema: información de mercado dispersa y sin saber cuán actualizada está. El tablero muestra y destaca; no recomienda ni interpreta.
@@ -40,4 +42,7 @@ Día 0 de 10 (día 0 = 28/09; entrega 08/10). Horas usadas: 8.5 aprox. (ver docs
 
 ## Pendiente
 - Pegar en docs/ai-log.md las entradas del PO y la corrección del Tech Lead sobre el reloj del fixture. Completar docs/horas.md.
-- Paso b) fixtures: hecho. c) business-days + change + market-status con tests: hecho (30 tests en verde). d) scaffold: hecho; falta deploy "hola" en Vercel.
+- Paso b) fixtures: hecho. c) business-days + change + market-status con tests: hecho (30 tests en verde). d) scaffold + deploy: hecho (28/09).
+- Capa de datos: hecha (68 tests en verde, `npm run check`). DolarAPI: /v1/dolares verificado (200); /api/dolares da 404.
+- Siguiente: route handlers (/api/quotes, /api/history/[asset], /api/news) y verificación del Data Cache con errores.
+- Verificar en Vercel que el proyecto usa Node.js 22 o 24 (aviso: builds con Node 20 fallan desde el 30/09).
