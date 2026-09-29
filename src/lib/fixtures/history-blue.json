@@ -1,6 +1,186 @@
 [
   {
     "casa": "blue",
+    "compra": 1495,
+    "venta": 1515,
+    "fecha": "2026-06-30"
+  },
+  {
+    "casa": "blue",
+    "compra": 1505,
+    "venta": 1525,
+    "fecha": "2026-07-01"
+  },
+  {
+    "casa": "blue",
+    "compra": 1505,
+    "venta": 1525,
+    "fecha": "2026-07-02"
+  },
+  {
+    "casa": "blue",
+    "compra": 1490,
+    "venta": 1510,
+    "fecha": "2026-07-03"
+  },
+  {
+    "casa": "blue",
+    "compra": 1490,
+    "venta": 1510,
+    "fecha": "2026-07-04"
+  },
+  {
+    "casa": "blue",
+    "compra": 1490,
+    "venta": 1510,
+    "fecha": "2026-07-05"
+  },
+  {
+    "casa": "blue",
+    "compra": 1495,
+    "venta": 1515,
+    "fecha": "2026-07-06"
+  },
+  {
+    "casa": "blue",
+    "compra": 1495,
+    "venta": 1515,
+    "fecha": "2026-07-07"
+  },
+  {
+    "casa": "blue",
+    "compra": 1490,
+    "venta": 1510,
+    "fecha": "2026-07-08"
+  },
+  {
+    "casa": "blue",
+    "compra": 1490,
+    "venta": 1510,
+    "fecha": "2026-07-09"
+  },
+  {
+    "casa": "blue",
+    "compra": 1490,
+    "venta": 1510,
+    "fecha": "2026-07-10"
+  },
+  {
+    "casa": "blue",
+    "compra": 1490,
+    "venta": 1510,
+    "fecha": "2026-07-11"
+  },
+  {
+    "casa": "blue",
+    "compra": 1490,
+    "venta": 1510,
+    "fecha": "2026-07-12"
+  },
+  {
+    "casa": "blue",
+    "compra": 1505,
+    "venta": 1525,
+    "fecha": "2026-07-13"
+  },
+  {
+    "casa": "blue",
+    "compra": 1500,
+    "venta": 1520,
+    "fecha": "2026-07-14"
+  },
+  {
+    "casa": "blue",
+    "compra": 1510,
+    "venta": 1530,
+    "fecha": "2026-07-15"
+  },
+  {
+    "casa": "blue",
+    "compra": 1505,
+    "venta": 1525,
+    "fecha": "2026-07-16"
+  },
+  {
+    "casa": "blue",
+    "compra": 1510,
+    "venta": 1530,
+    "fecha": "2026-07-17"
+  },
+  {
+    "casa": "blue",
+    "compra": 1510,
+    "venta": 1530,
+    "fecha": "2026-07-18"
+  },
+  {
+    "casa": "blue",
+    "compra": 1510,
+    "venta": 1530,
+    "fecha": "2026-07-19"
+  },
+  {
+    "casa": "blue",
+    "compra": 1520,
+    "venta": 1540,
+    "fecha": "2026-07-20"
+  },
+  {
+    "casa": "blue",
+    "compra": 1525,
+    "venta": 1545,
+    "fecha": "2026-07-21"
+  },
+  {
+    "casa": "blue",
+    "compra": 1535,
+    "venta": 1555,
+    "fecha": "2026-07-22"
+  },
+  {
+    "casa": "blue",
+    "compra": 1530,
+    "venta": 1550,
+    "fecha": "2026-07-23"
+  },
+  {
+    "casa": "blue",
+    "compra": 1525,
+    "venta": 1545,
+    "fecha": "2026-07-24"
+  },
+  {
+    "casa": "blue",
+    "compra": 1525,
+    "venta": 1545,
+    "fecha": "2026-07-25"
+  },
+  {
+    "casa": "blue",
+    "compra": 1525,
+    "venta": 1545,
+    "fecha": "2026-07-26"
+  },
+  {
+    "casa": "blue",
+    "compra": 1540,
+    "venta": 1560,
+    "fecha": "2026-07-27"
+  },
+  {
+    "casa": "blue",
+    "compra": 1550,
+    "venta": 1570,
+    "fecha": "2026-07-28"
+  },
+  {
+    "casa": "blue",
+    "compra": 1550,
+    "venta": 1570,
+    "fecha": "2026-07-29"
+  },
+  {
+    "casa": "blue",
     "compra": 1545,
     "venta": 1565,
     "fecha": "2026-07-30"

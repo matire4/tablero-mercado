@@ -46,6 +46,20 @@ describe('fetchJson', () => {
     expect(await fetchJson(URL, { revalidate: 60 })).toMatchObject({ ok: false, error: { kind: 'invalid' } });
   });
 
+  it('el cuerpo se corta a mitad de lectura → upstream, nunca lanza (bug del 28/09)', async () => {
+    server.use(http.get(URL, () => {
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('[{"a":'));
+          controller.error(new Error('conexión cortada'));
+        },
+      });
+      return new HttpResponse(stream, { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }));
+    const res = await fetchJson(URL, { revalidate: 60 });
+    expect(res.ok).toBe(false);
+  });
+
   it('falla de red → kind upstream, nunca lanza', async () => {
     server.use(http.get(URL, () => HttpResponse.error()));
     expect(await fetchJson(URL, { revalidate: 60 })).toMatchObject({ ok: false, error: { kind: 'upstream' } });

@@ -72,3 +72,25 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 **Por qué estaba mal:** no era lo que el dueño del producto tenía en la cabeza (referencia: el mockup del Asistente Contable, oscuro y con movimiento). Dos vueltas de mockup antes de acertar.
 **Cómo lo detecté:** lo dijo Mati al ver cada versión.
 **Qué hice:** preguntar antes de dibujar la tercera (tema, forma, qué se anima) y recién ahí armar la v2, que se aprobó. Lección: para lo visual, preguntar referencia antes de proponer.
+
+## 2026-09-28 · Tech Lead
+**Qué propuso:** en `fetch-json.ts`, el try/catch solo alrededor de `fetch()`; la lectura del cuerpo (`response.text()`) quedó afuera.
+**Por qué estaba mal:** el timeout de 5 s puede saltar a mitad de la lectura de una respuesta grande (históricos de ~0,5 MB). Ese error escapó y `/api/quotes` devolvió HTTP 500, rompiendo la promesa de diseño "nunca lanza al cliente".
+**Cómo lo detecté:** Mati pegó el log del dev server: `GET /api/quotes 500 in 6.5s` + `unhandledRejection`. Los tests con MSW no lo cubrían porque simulaban el timeout antes de la respuesta, no durante.
+**Qué hice:** lectura del cuerpo dentro de try/catch y test nuevo con un stream que se corta a mitad. Candidato a docs/bug-report.md.
+
+## 2026-09-28 · Tech Lead
+**Qué propuso:** fetch del cliente con `cache: 'no-store'`.
+**Por qué estaba mal:** el navegador manda `Cache-Control: no-cache` y Next lo trata como recarga forzada: saltea su Data Cache y cada visita pegaba a los 3 proveedores (en el log: `cache skip (hard refresh)` en todas las llamadas del navegador; con curl sí había cache).
+**Cómo lo detecté:** mismo log.
+**Qué hice:** fetch sin opción de cache; la frescura la controla el server (revalidate + Cache-Control).
+
+## 2026-09-29 · Tech Lead
+**Qué propuso:** Recharts para el gráfico, "para ahorrar una hora".
+**Por qué estaba mal:** lo recomendé sin verificar qué traía. `npm view recharts` mostró 11 dependencias, incluidas Redux Toolkit, react-redux, immer y reselect: un gestor de estado completo para un gráfico de dos líneas. Contradecía el criterio de Mati de no llenar el proyecto de dependencias.
+**Cómo lo detecté:** Mati preguntó por qué la recomendaba; al verificar antes de instalar, apareció la lista.
+**Qué hice:** gráfico en SVG propio (~150 líneas de utilidades puras con tests + un componente). Regla nueva en CLAUDE.md para toda dependencia futura.
+
+## 2026-09-29 · Tech Lead
+**Qué propuso:** H1-2 tal cual: brecha superpuesta al precio con un segundo eje Y.
+**Por qué lo cuestioné:** dos ejes Y en un gráfico es el error clásico de visualización: el ojo compara las líneas como si compartieran escala. Propuse un panel de brecha debajo del precio, alineado en el tiempo. Es un desvío de una decisión cerrada, avisado antes de implementar; se cambia a superposición en 15 min si Mati lo prefiere.

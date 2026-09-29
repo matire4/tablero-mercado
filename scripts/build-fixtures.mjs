@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 const RAW = 'src/lib/fixtures/raw';
 const OUT = 'src/lib/fixtures';
-const DIAS_HISTORICO = 60;
+const DIAS_HISTORICO = 90; // igual al rango máximo del selector (7/30/90): el mock nunca muestra menos días que los que promete
 
 const read = (f) => JSON.parse(readFileSync(`${RAW}/${f}`, 'utf8'));
 const write = (f, data) => writeFileSync(`${OUT}/${f}`, JSON.stringify(data, null, 2) + '\n');

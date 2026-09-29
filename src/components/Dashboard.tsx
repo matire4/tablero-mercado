@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { AssetId, QuotesResponse } from '@/lib/types';
 import { MarketBadge } from './MarketBadge';
+import { HistoryChart } from './HistoryChart';
 import { QuoteCard } from './QuoteCard';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -19,7 +20,8 @@ export function Dashboard() {
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch('/api/quotes', { cache: 'no-store' });
+        // Sin cache: 'no-store': el navegador mandaría Cache-Control: no-cache y Next saltearía su cache de datos.
+        const res = await fetch('/api/quotes');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const body = (await res.json()) as QuotesResponse;
         if (!cancelled) { setData(body); setFetchError(null); setNow(new Date()); }
@@ -71,6 +73,8 @@ export function Dashboard() {
           />
         ))}
       </section>
+
+      <HistoryChart />
     </>
   );
 }

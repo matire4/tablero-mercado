@@ -319,7 +319,7 @@ Formato de respuesta verificado en `raw/gnews-search.json` (ver §3). `NewsItem.
 
 | Fixture | Contenido |
 |---|---|
-| `history-{oficial,blue,bolsa,tarjeta,riesgo-pais}.json` | Últimos 60 días de cada histórico, formato ArgentinaDatos. |
+| `history-{oficial,blue,bolsa,tarjeta,riesgo-pais}.json` | Últimos 90 días de cada histórico (igual al rango máximo del selector), formato ArgentinaDatos. |
 | `feriados.json`, `news.json` | Respuestas tal cual. |
 | `quotes-normal.json` | `now` = lunes 28/09 10:00 ART; DolarAPI y riesgo país último, tal cual. |
 | `quotes-sin-oficial.json` | Igual, sin la casa `oficial`. La brecha debe mostrar "no disponible". |

@@ -1,6 +1,186 @@
 [
   {
     "casa": "tarjeta",
+    "compra": 1885,
+    "venta": 1950,
+    "fecha": "2026-06-30"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-01"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-02"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-03"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-04"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-05"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-06"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1904.5,
+    "venta": 1969.5,
+    "fecha": "2026-07-07"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-08"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-09"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-10"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-11"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-12"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-13"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1878.5,
+    "venta": 1943.5,
+    "fecha": "2026-07-14"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1878.5,
+    "venta": 1943.5,
+    "fecha": "2026-07-15"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1878.5,
+    "venta": 1943.5,
+    "fecha": "2026-07-16"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1885,
+    "venta": 1950,
+    "fecha": "2026-07-17"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1885,
+    "venta": 1950,
+    "fecha": "2026-07-18"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1885,
+    "venta": 1950,
+    "fecha": "2026-07-19"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1885,
+    "venta": 1950,
+    "fecha": "2026-07-20"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1885,
+    "venta": 1950,
+    "fecha": "2026-07-21"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1891.5,
+    "venta": 1956.5,
+    "fecha": "2026-07-22"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1898,
+    "venta": 1963,
+    "fecha": "2026-07-23"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1911,
+    "venta": 1976,
+    "fecha": "2026-07-24"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1911,
+    "venta": 1976,
+    "fecha": "2026-07-25"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1911,
+    "venta": 1976,
+    "fecha": "2026-07-26"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1911,
+    "venta": 1976,
+    "fecha": "2026-07-27"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1911,
+    "venta": 1976,
+    "fecha": "2026-07-28"
+  },
+  {
+    "casa": "tarjeta",
+    "compra": 1904.5,
+    "venta": 1969.5,
+    "fecha": "2026-07-29"
+  },
+  {
+    "casa": "tarjeta",
     "compra": 1898,
     "venta": 1963,
     "fecha": "2026-07-30"

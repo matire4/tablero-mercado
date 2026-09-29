@@ -33,6 +33,7 @@ URL pública: https://tablero-mercado.vercel.app (deploy automático en cada pus
   - Tutorial de 4 pasos con foco sobre la interfaz (valor y hora · brecha · mercado cerrado · noticias con demora). Se abre solo la primera vez o desde el botón "¿Cómo leer esto?".
 - Todo movimiento respeta prefers-reduced-motion. Vidrio y desenfoque limitados a paneles visibles; si un celular viejo se traba, se baja el desenfoque, no se saca el diseño.
 - Sigue vigente: variación y brecha sin flechas ni verde/rojo; números en formato es-AR; datos cada 60 s, "hace X min" cada 30 s.
+- Gráfico (desvío de H1-2 aprobado el 29/09): la brecha NO va superpuesta con segundo eje Y sobre el precio, sino en un panel propio debajo, alineado fecha a fecha y con su escala. Motivo: dos ejes Y en un mismo gráfico inducen comparaciones falsas entre unidades distintas. Colores de líneas validados para daltonismo y contraste en ambos temas; se distinguen además por trazo (sólido / punteado). Curva monótona (no inventa extremos). Tabla accesible bajo "Ver como tabla".
 
 ### Arquitectura (detalle en docs/arquitectura.md)
 - Carga de datos: client components con fetch a los route handlers; QuoteGrid refresca /api/quotes cada 60 s.
@@ -41,10 +42,11 @@ URL pública: https://tablero-mercado.vercel.app (deploy automático en cada pus
 - Días hábiles: una sola función (lib/business-days.ts) usada por market-status y por la variación del día.
 - Brecha se calcula solo en el server (lib/brecha.ts); la UI no calcula nada.
 - Manejo de timeout (5 s), 429 y vacío en un único helper (lib/fetch-json.ts).
-- Modo mock: USE_MOCK_DATA=true + MOCK_SCENARIO=normal|viernes-cerrado|sin-oficial, `now` congelado por fixture, banner no ocultable "Datos de demostración, no reflejan el mercado". Fixtures recortados a 60 días; crudos en raw/ como evidencia.
+- Modo mock: USE_MOCK_DATA=true + MOCK_SCENARIO=normal|viernes-cerrado|sin-oficial, `now` congelado por fixture, banner no ocultable "Datos de demostración, no reflejan el mercado". Fixtures recortados a 90 días (igual al rango máximo del selector; antes 60 y el mock mostraba menos de lo que prometía, 29/09); crudos en raw/ como evidencia.
 - Variables de entorno: .env.local solo local; producción se carga a mano en Vercel. Ningún valor real en el repo.
 
 ## Restricciones
+- Dependencias (regla del 28/09): una librería nueva entra solo si ahorra más de ~1 h, está mantenida y se anota en arquitectura.md con el motivo. Se evaluó Recharts para el gráfico y se descartó: trae 11 dependencias (Redux Toolkit, react-redux, immer…) para dos líneas. El gráfico es SVG propio (src/lib/chart.ts + HistoryChart.tsx).
 - No agregar features fuera de las dos acordadas ni del alcance base.
 - Toda decisión nueva se anota acá antes de implementarse.
 - Si algo va a llevar más horas que docs/estimaciones.md, avisar antes de hacerlo.
@@ -57,5 +59,6 @@ URL pública: https://tablero-mercado.vercel.app (deploy automático en cada pus
 - Route handlers: hechos y probados en local con datos reales; cache verificada (28/09). GNews en secuencia.
 - NEWS_API_KEY cargada en Vercel; /api/quotes, /api/history y /api/news verificados en la URL pública (28/09). docs/riesgos.md iniciado con lo detectado en desarrollo.
 - Pendiente: confirmar en los logs de Vercel por qué la búsqueda en inglés no devolvió notas en la primera respuesta.
-- Siguiente: UI en este orden: tarjetas + estados + banner + tema → gráfico con brecha → noticias → entrada + tutorial → README.
+- Tarjetas + estados + banner + tema: hecho (28/09). Gráfico con brecha: hecho y aprobado (29/09).
+- Siguiente: noticias → entrada + tutorial → README.
 - Verificar en Vercel que el proyecto usa Node.js 22 o 24 (aviso: builds con Node 20 fallan desde el 30/09).

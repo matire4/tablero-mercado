@@ -166,3 +166,52 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .blob { animation: none; }
   .card { animation: none; }
 }
+
+/* Gráfico */
+:root { --chart-price: #e05a43; --chart-gap: #6b5fd6; }
+:root[data-theme='dark'] { --chart-price: #ec6046; --chart-gap: #8a7aec; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { --chart-price: #ec6046; --chart-gap: #8a7aec; } }
+
+.chart { display: flex; flex-direction: column; gap: 14px; padding: 18px 20px; border-radius: 28px; }
+.chart-controls { display: flex; flex-direction: column; gap: 10px; }
+@media (min-width: 900px) { .chart-controls { flex-direction: row; justify-content: space-between; align-items: center; } }
+.pills { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.pill-btn { padding: 7px 13px; border-radius: 999px; border: 1px solid var(--glass-border); background: transparent; font-size: 12px; white-space: nowrap; }
+.pill-btn.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); font-weight: 500; }
+.segmented { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--pill-bg); align-self: flex-start; }
+.seg-btn { padding: 5px 11px; border-radius: 999px; border: none; background: transparent; color: var(--fg-2); font-size: 12px; }
+.seg-btn.active { background: var(--pill-active); color: var(--fg); font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+
+.chart-box { position: relative; }
+.chart-svg { display: block; touch-action: pan-y; overflow: visible; }
+.chart-svg .grid { stroke: var(--line); stroke-width: 1; }
+.chart-svg .grid.zero { stroke: var(--fg-3); stroke-dasharray: 2 4; }
+.chart-svg .tick { font-size: 10px; fill: var(--fg-3); font-family: var(--font-inter-tight), system-ui, sans-serif; }
+.chart-svg .tick.label { font-size: 11px; fill: var(--fg-2); }
+.chart-svg .line { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.chart-svg .line.price { stroke: var(--chart-price); }
+.chart-svg .line.gap { stroke: var(--chart-gap); stroke-width: 2; stroke-dasharray: 0.004 0.012; stroke-dashoffset: 0; animation: fade-in 900ms ease forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.chart-svg .dot.price { fill: var(--chart-price); }
+.chart-svg .dot.gap { fill: var(--chart-gap); }
+.chart-svg .dot-halo { fill: var(--chart-price); opacity: 0.22; }
+.chart-svg .crosshair line { stroke: var(--fg-3); stroke-width: 1; stroke-dasharray: 3 3; }
+
+.tooltip { position: absolute; top: 8px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border-radius: 12px; background: var(--glass); border: 1px solid var(--glass-border); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); font-size: 12px; pointer-events: none; white-space: nowrap; box-shadow: var(--glass-shadow); }
+.tooltip-date { color: var(--fg-2); }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 999px; margin-right: 6px; vertical-align: -1px; }
+.swatch.price { background: var(--chart-price); }
+.swatch.gap { background: var(--chart-gap); }
+
+.chart-state { display: flex; flex-direction: column; gap: 8px; min-height: 160px; justify-content: center; align-items: center; text-align: center; font-size: 14px; color: var(--fg-2); }
+.chart-state.error { border: 1px dashed var(--error-border); border-radius: 16px; }
+.chart-state.empty { border: 1px solid var(--line); border-radius: 16px; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--fg-2); align-items: center; }
+.table-toggle { margin-left: auto; }
+.table-toggle summary { cursor: pointer; color: var(--fg-3); }
+.table-toggle table { margin-top: 8px; border-collapse: collapse; font-size: 12px; }
+.table-toggle td, .table-toggle th { padding: 3px 10px; text-align: right; border-bottom: 1px solid var(--line); }
+.table-toggle th:first-child, .table-toggle td:first-child { text-align: left; }
+
+@media (prefers-reduced-motion: reduce) { .chart-svg .line { animation: none; stroke-dashoffset: 0; } .chart-svg .line.gap { opacity: 1; } }

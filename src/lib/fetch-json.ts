@@ -43,7 +43,18 @@ export async function fetchJson<T>(url: string, options: FetchJsonOptions): Prom
   if (response.status === 429) return fail('rate-limited', 'HTTP 429: límite de uso alcanzado');
   if (!response.ok) return fail('upstream', `HTTP ${response.status}`);
 
-  const text = await response.text();
+  // La lectura del cuerpo también puede fallar (timeout a mitad de una respuesta grande, conexión cortada).
+  // Tiene que estar dentro de try/catch: el 28/09 un timeout durante response.text() escapó y devolvió un 500.
+  let text: string;
+  try {
+    text = await response.text();
+  } catch (err) {
+    const name = err instanceof Error ? err.name : '';
+    if (name === 'TimeoutError' || name === 'AbortError') {
+      return fail('timeout', `Sin respuesta completa en ${timeoutMs} ms`);
+    }
+    return fail('upstream', 'La respuesta se cortó antes de terminar');
+  }
   if (text.trim() === '') return fail('empty', 'Respuesta vacía');
 
   let json: unknown;
