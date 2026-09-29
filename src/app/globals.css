@@ -213,7 +213,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .table-toggle { margin-left: auto; }
 .table-toggle[open] { flex-basis: 100%; margin-left: 0; }
 .table-toggle summary { cursor: pointer; color: var(--fg-3); width: max-content; margin-left: auto; }
-.table-wrap { margin: 8px 0 0 auto; max-width: 560px; max-height: 260px; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; }
+.table-wrap { margin: 8px auto 0; max-width: 520px; max-height: 260px; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; }
 .table-toggle table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .table-toggle td, .table-toggle th { padding: 5px 12px; text-align: right; border-bottom: 1px solid var(--line); }
 .table-toggle th { position: sticky; top: 0; background: var(--bg); color: var(--fg-2); font-weight: 500; }
