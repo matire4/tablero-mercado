@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import type { AssetId, QuotesResponse } from '@/lib/types';
 import { MarketBadge } from './MarketBadge';
 import { HistoryChart } from './HistoryChart';
+import { NewsBoard } from './NewsBoard';
 import { QuoteCard } from './QuoteCard';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -75,6 +76,8 @@ export function Dashboard() {
       </section>
 
       <HistoryChart />
+
+      <NewsBoard />
     </>
   );
 }

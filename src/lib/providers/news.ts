@@ -12,7 +12,9 @@ export const GNEWS_MAX = 10;
 /** Búsquedas fijas. `lang` acepta un solo valor por request (verificado en la doc). */
 export const SEARCHES: Array<{ lang: 'es' | 'en'; q: string; country?: string }> = [
   { lang: 'es', country: 'ar', q: 'dólar OR BCRA OR inflación OR "riesgo país" OR Fed OR mercados OR bonos OR Merval' },
-  { lang: 'en', q: 'Argentina AND (peso OR "central bank" OR inflation OR "country risk" OR bonds OR IMF OR debt OR markets OR economy)' },
+  // Internacional (cambio del 29/09): la versión `Argentina AND (…)` traía 4 notas con la más nueva de 19 días.
+  // Formato verificado con curl en raw/gnews-search-en-v2.json (GNews acepta los paréntesis anidados).
+  { lang: 'en', q: 'Fed OR "Federal Reserve" OR "Wall Street" OR "emerging markets" OR IMF OR (Argentina AND (peso OR inflation OR bonds OR debt OR "central bank"))' },
 ];
 
 /**
@@ -24,10 +26,11 @@ export const SEARCHES: Array<{ lang: 'es' | 'en'; q: string; country?: string }>
 export const TOPIC_RULES: Array<{ topic: NewsTopic; pattern: RegExp }> = [
   { topic: 'riesgo-pais', pattern: /riesgo pa[ií]s|country risk/i },
   { topic: 'bcra', pattern: /\bbcra\b|banco central|central bank|reservas|\bbanks?\b/i },
-  { topic: 'fed', pattern: /\bfed\b|reserva federal|federal reserve|powell/i },
+  // Sensible a mayúsculas y sin "Fed up": en inglés "fed up" (harto) entraba como Fed (29/09, crudo en-v2).
+  { topic: 'fed', pattern: /\bFed\b(?! up\b)|FED\b|[Rr]eserva [Ff]ederal|Federal Reserve|Powell/ },
   { topic: 'inflacion', pattern: /inflaci[oó]n|inflation|\bipc\b|\bcpi\b|precios al consumidor/i },
   { topic: 'dolar', pattern: /d[oó]lar|dollar|\bpeso\b|\bblue\b|\bmep\b|\bccl\b|cepo|brecha|tipo de cambio/i },
-  { topic: 'mercados', pattern: /merval|wall street|\bbolsa\b|acciones|\bbonos?\b|\bstocks?\b|\bbonds?\b|\bs&p\b|nasdaq|\bfmi\b|\bimf\b|mercados? financieros?|markets?\b|\bdebt\b|investors|\beconomy\b|\brates?\b|\bdeuda\b/i },
+  { topic: 'mercados', pattern: /merval|wall street|\bbolsa\b|acciones|\bbonos?\b|\bstocks?\b|\bbonds?\b|\bs&p\b|nasdaq|\bfmi\b|\bimf\b|mercados? financieros?|markets?\b|\bdebt\b|investors|\brates?\b|\bdeuda\b/i },
 ];
 
 export function assignTopic(title: string): NewsTopic | null {
@@ -87,6 +90,24 @@ export function buildUrl(search: (typeof SEARCHES)[number], apiKey: string): str
   return `${GNEWS_URL}?${params.toString()}`;
 }
 
+/** Título normalizado para comparar: minúsculas, sin acentos ni signos. */
+const normTitle = (t: string) => t.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, ' ').trim();
+
+/**
+ * Saca notas repetidas: la misma nota publicada por dos medios suele llegar con el título idéntico
+ * o con un agregado ("EXCLUSIVE-…", "… (1)"). Si un título normalizado contiene al otro, es la misma.
+ * Conserva la primera (la lista llega ordenada por fecha descendente).
+ */
+export function dedupeByTitle(items: NewsItem[]): NewsItem[] {
+  const seen: string[] = [];
+  return items.filter((n) => {
+    const k = normTitle(n.title);
+    if (seen.some((s) => s.includes(k) || k.includes(s))) return false;
+    seen.push(k);
+    return true;
+  });
+}
+
 export interface NewsResult {
   items: NewsItem[];
   /** Cuántas búsquedas salieron bien. Si ok < total, la lista está incompleta y el route handler no la deja cachear. */
@@ -108,8 +129,16 @@ export async function fetchNews(apiKey: string | undefined, delayMs = GNEWS_DELA
     const res = await fetchJson<unknown>(buildUrl(s, apiKey), { revalidate: GNEWS_REVALIDATE });
     results.push(res.ok ? normalizeNews(res.data, s.lang) : res);
   }
+  return mergeNews(results);
+}
+
+/**
+ * Junta los resultados de cada búsqueda: ordena por fecha descendente y saca repetidas.
+ * Falla solo si fallan todas (devuelve el primer error). La usa también el modo mock.
+ */
+export function mergeNews(results: Result<NewsItem[]>[]): Result<NewsResult> {
   const okOnes = results.filter((r): r is Extract<Result<NewsItem[]>, { ok: true }> => r.ok);
   if (okOnes.length === 0) return results[0] as Result<never>;
-  const items = okOnes.flatMap((r) => r.data).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-  return ok({ items, sources: { ok: okOnes.length, total: SEARCHES.length } });
+  const items = dedupeByTitle(okOnes.flatMap((r) => r.data).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)));
+  return ok({ items, sources: { ok: okOnes.length, total: results.length } });
 }

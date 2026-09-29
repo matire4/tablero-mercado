@@ -52,6 +52,14 @@ export interface HistoryResponse {
   market: MarketStatus;
 }
 
+/** Respuesta de /api/news. `sources.ok < sources.total` = alguna búsqueda falló y la lista puede estar incompleta. */
+export interface NewsResponse {
+  items: NewsItem[];
+  sources: { ok: number; total: number };
+  fetchedAt: string;
+  mock: boolean;
+}
+
 export type NewsTopic = 'dolar' | 'bcra' | 'fed' | 'inflacion' | 'riesgo-pais' | 'mercados';
 
 export interface NewsItem {

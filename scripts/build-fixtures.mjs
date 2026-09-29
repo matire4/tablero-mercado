@@ -26,9 +26,13 @@ for (const casa of ['oficial', 'blue', 'bolsa', 'tarjeta']) {
 }
 write('history-riesgo-pais.json', ultimosDias(read('argdatos-riesgo-historico.json'), DIAS_HISTORICO, HASTA));
 
-// Feriados y noticias: tal cual.
+// Feriados: tal cual.
 write('feriados.json', read('argdatos-feriados.json'));
-write('news.json', read('gnews-search.json'));
+
+// Noticias: una respuesta real por idioma, tal cual, con su propio reloj congelado = cuándo se bajó la última
+// (29/09 09:32Z). Así "hace X h" es cierto respecto de la captura y ninguna nota queda en el futuro.
+// La búsqueda en español se bajó el 28/09; la de inglés es la v2 (búsqueda internacional, 29/09).
+write('news.json', { now: '2026-09-29T09:32:00.000Z', es: read('gnews-search.json'), en: read('gnews-search-en-v2.json') });
 
 // Escenarios de cotizaciones. Cada uno lleva su propio `now` congelado:
 // el estado de mercado y "actualizado hace X" se calculan con ese reloj, no con el real.

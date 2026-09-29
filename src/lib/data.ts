@@ -7,10 +7,10 @@ import { brechaSeries, calcBrecha } from './brecha';
 import { calcChangePct } from './change';
 import { getMarketStatus, toArgentinaTime } from './market-status';
 import { fail, ok } from './result';
-import type { AssetId, HistoryPoint, HistoryResponse, MarketStatus, NewsItem, Quote, QuotesResponse, Result } from './types';
+import type { AssetId, HistoryPoint, HistoryResponse, MarketStatus, NewsResponse, Quote, QuotesResponse, Result } from './types';
 import { fetchDolares, normalizeDolares } from './providers/dolarapi';
 import { fetchFeriados, fetchHistorico, fetchRiesgoUltimo, normalizeFeriados, normalizeHistorico, normalizeRiesgoUltimo } from './providers/argentinadatos';
-import { fetchNews, normalizeNews, type NewsResult } from './providers/news';
+import { fetchNews, mergeNews, normalizeNews } from './providers/news';
 
 import feriadosFixture from './fixtures/feriados.json';
 import newsFixture from './fixtures/news.json';
@@ -143,14 +143,18 @@ export async function getHistory(asset: AssetId, range: 7 | 30 | 90, cfg: DataCo
   return ok({ asset, range, series, gapSeries, market: getMarketStatus(now, holidays, source) });
 }
 
-export type NewsResponse = NewsResult & { fetchedAt: string };
+export type { NewsResponse };
 
+/**
+ * En modo mock las noticias tienen su propio reloj: el momento en que se bajaron los crudos (`newsFixture.now`),
+ * no el del escenario de cotizaciones. Así "publicada hace X h" es verdadero respecto de cuando se capturaron
+ * y ninguna nota queda en el futuro. El panel de noticias no depende del estado de mercado.
+ */
 export async function getNews(cfg: DataConfig = configFromEnv()): Promise<Result<NewsResponse>> {
-  const now = nowFor(cfg);
   if (cfg.mock) {
-    const res = normalizeNews(newsFixture, 'es');
-    return res.ok ? ok({ items: res.data, sources: { ok: 1, total: 1 }, fetchedAt: now.toISOString() }) : res;
+    const res = mergeNews([normalizeNews(newsFixture.es, 'es'), normalizeNews(newsFixture.en, 'en')]);
+    return res.ok ? ok({ ...res.data, fetchedAt: newsFixture.now, mock: true }) : res;
   }
   const res = await fetchNews(cfg.newsApiKey);
-  return res.ok ? ok({ ...res.data, fetchedAt: now.toISOString() }) : res;
+  return res.ok ? ok({ ...res.data, fetchedAt: new Date().toISOString(), mock: false }) : res;
 }

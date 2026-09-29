@@ -3,13 +3,15 @@ import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { normalizeDolares } from '../../src/lib/providers/dolarapi';
 import { normalizeFeriados, normalizeHistorico, normalizeRiesgoUltimo } from '../../src/lib/providers/argentinadatos';
-import { assignTopic, fetchNews, GNEWS_URL, normalizeNews } from '../../src/lib/providers/news';
+import { assignTopic, dedupeByTitle, fetchNews, GNEWS_URL, normalizeNews } from '../../src/lib/providers/news';
+import type { NewsItem } from '../../src/lib/types';
 import dolares from '../../src/lib/fixtures/raw/dolarapi-dolares.json';
 import riesgoUltimo from '../../src/lib/fixtures/raw/argdatos-riesgo-ultimo.json';
 import feriados from '../../src/lib/fixtures/raw/argdatos-feriados.json';
 import historyBlue from '../../src/lib/fixtures/history-blue.json';
 import historyRiesgo from '../../src/lib/fixtures/history-riesgo-pais.json';
 import gnews from '../../src/lib/fixtures/raw/gnews-search.json';
+import gnewsEn from '../../src/lib/fixtures/raw/gnews-search-en-v2.json';
 
 describe('DolarAPI → Quote', () => {
   it('mapea las 4 casas del alcance con la respuesta real; bolsa → mep', () => {
@@ -74,6 +76,30 @@ describe('GNews', () => {
     expect(assignTopic('El milagro español: la venta de libros crece un 3,9%')).toBeNull();
     expect(assignTopic('A Milei la política no le sienta')).toBeNull();
     expect(assignTopic('Morosidad: una de cada tres entidades que dan créditos')).toBeNull();
+  });
+  it('casos reales en inglés (29/09): "Fed up" y "economy" no son temas; "Fed\'s Cook" sí', () => {
+    expect(assignTopic('Fed up with delay, Bengaluru residents ‘open’ Pink Line Metro')).toBeNull();
+    expect(assignTopic("The Messi economy: Life after Argentina is still big money for the 'Little Magician'")).toBeNull();
+    expect(assignTopic("Fed's Cook sees further inflationary pressures ahead")).toBe('fed');
+    expect(assignTopic('Colombia has held discussions with IMF, including on securing financing')).toBe('mercados');
+  });
+  it('dedupeByTitle: misma nota con prefijo o sufijo de otro medio cuenta una vez', () => {
+    const n = (id: string, title: string): NewsItem => ({ id, title, source: 's', publishedAt: '2026-09-28T18:00:00Z', url: 'u', lang: 'en', topic: 'mercados' });
+    const out = dedupeByTitle([
+      n('1', 'Colombia has held discussions with IMF, including on securing financing: sources'),
+      n('2', 'EXCLUSIVE-Colombia has held discussions with IMF, including on securing financing: sources'),
+      n('3', 'IRS Threatens Crackdown on Array of Wall Street Tax Dodges (1)'),
+      n('4', 'IRS Threatens Crackdown on Array of Wall Street Tax Dodges'),
+      n('5', 'Wall Street cierra mixto'),
+    ]);
+    expect(out.map((x) => x.id)).toEqual(['1', '3', '5']);
+  });
+  it('respuesta real en inglés (búsqueda internacional): todas con tema, ninguna "Fed up"', () => {
+    const r = normalizeNews(gnewsEn, 'en');
+    if (!r.ok) throw new Error('se esperaba ok');
+    expect(r.data.length).toBeGreaterThan(0);
+    expect(r.data.every((x) => x.lang === 'en')).toBe(true);
+    expect(r.data.some((x) => x.title.startsWith('Fed up'))).toBe(false);
   });
   it('normaliza la respuesta real y descarta las notas fuera de tema', () => {
     const n = normalizeNews(gnews, 'es');

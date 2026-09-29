@@ -68,10 +68,21 @@ describe('getHistory en modo mock', () => {
 });
 
 describe('getNews en modo mock', () => {
-  it('devuelve las notas del fixture que entran en los temas fijos', async () => {
+  it('devuelve notas en español y en inglés, dentro de los temas fijos', async () => {
     const r = await getNews(mock('normal'));
-    expect(r.ok && r.data.items.length).toBeGreaterThan(0);
-    expect(r.ok && r.data.sources).toEqual({ ok: 1, total: 1 });
-    expect(r.ok && r.data.items.every((n) => typeof n.topic === 'string')).toBe(true);
+    if (!r.ok) throw new Error('se esperaba ok');
+    expect(r.data.mock).toBe(true);
+    expect(r.data.sources).toEqual({ ok: 2, total: 2 });
+    expect(r.data.items.some((n) => n.lang === 'es')).toBe(true);
+    expect(r.data.items.some((n) => n.lang === 'en')).toBe(true);
+    expect(r.data.items.every((n) => typeof n.topic === 'string')).toBe(true);
+  });
+  it('usa el reloj de la captura: ninguna nota queda en el futuro, sea cual sea el escenario', async () => {
+    for (const s of ['normal', 'viernes-cerrado', 'sin-oficial'] as const) {
+      const r = await getNews(mock(s));
+      if (!r.ok) throw new Error('se esperaba ok');
+      expect(r.data.fetchedAt).toBe('2026-09-29T09:32:00.000Z');
+      expect(r.data.items.every((n) => n.publishedAt <= r.data.fetchedAt)).toBe(true);
+    }
   });
 });
