@@ -4,6 +4,12 @@ import { expect, test } from '@playwright/test';
 // Cada test dice qué criterio de aceptación de docs/producto.md cubre.
 
 test.beforeEach(async ({ page }) => {
+  // La entrada "puertas" y el tutorial tapan la pantalla la primera vez: se marcan como vistos
+  // para que estos tests miren el tablero directo. El tutorial tiene su propio test.
+  await page.addInitScript(() => {
+    sessionStorage.setItem('intro-seen', '1');
+    localStorage.setItem('tutorial-seen', '1');
+  });
   await page.goto('/');
 });
 

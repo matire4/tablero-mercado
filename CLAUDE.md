@@ -2,7 +2,7 @@
 
 ## Estado
 Fase actual: desarrollo (producto cerrado el 26/09/2026; arquitectura aprobada el 27/09, revisada el 28/09 con formatos reales).
-Día 1 de 10 (día 0 = 28/09). Entrega: miércoles 07/10; demo jueves 08 o viernes 09/10 (propuesto a Rubika el 28/09). Horas usadas: 16.5 aprox. (ver docs/horas.md) de 28 (escenario realista: 30-32 declarado; 33-36 con el alcance de diseño del 28/09).
+Día 1 de 10 (día 0 = 28/09). Entrega: miércoles 07/10; demo jueves 08 o viernes 09/10 (propuesto a Rubika el 28/09). Horas usadas: 20 aprox. al cierre del 29/09 a la mañana (ver docs/horas.md) de 28 (escenario realista: 30-32 declarado; 33-36 con el alcance de diseño del 28/09).
 
 URL pública: https://tablero-mercado.vercel.app (deploy automático en cada push a main).
 
@@ -30,7 +30,7 @@ URL pública: https://tablero-mercado.vercel.app (deploy automático en cada pus
 - Estética: fondo carbón con manchas de color desenfocadas que se mueven lento, paneles de vidrio (backdrop-filter), acento salmón, línea de brecha violeta punteada. Tipografías Sora (títulos/números) e Inter Tight (secundario).
 - Tema claro y oscuro: por defecto sigue la preferencia del sistema; botón para cambiarlo, persistido en el navegador.
 - Alcance NUEVO respecto de producto.md, aceptado con su costo (3–4 h; desarrollo pasa a 16–23 h, total realista 33–36):
-  - Animación de entrada "puertas" de 0,8 s, solo la primera vez por sesión, con el tablero ya cargado detrás. No bloquea datos.
+  - Animación de entrada "puertas", solo la primera vez por sesión, con el tablero ya cargado detrás. No bloquea datos. Duración (cambio del 29/09, decidido por Mati al probarla): ~2,4 s en total: 1,4 s de acercamiento al telón cerrado y 0,8 s de apertura con el tablero acercándose detrás; la versión de 0,8 s no llegaba a registrarse. Telón que sigue al tema (fondo, manchas y texto con los tokens del tema): carbón en oscuro, crema en claro. Se distingue de la página por las manchas, el título y el brillo de la unión; una lámina lisa del color del fondo no se veía, e invertida quedaba crema sobre el modo oscuro. Sobre el telón: nombre del producto y "Cargando cotizaciones y noticias…" con una línea que se subraya; sin porcentaje, porque no hay nada real que medir (la duración es fija y el fetch corre en paralelo). Se descartaron 5 s: para un usuario "de un vistazo" es una espera. El telón no se abre hasta que el tablero tiene sus datos (ningún panel con aria-busy), con tope de 6 s; el fetch arranca igual, no se bloquea nada.
   - Tarjetas entran escalonadas (80 ms entre cada una); el gráfico se dibuja al cambiar activo o rango.
   - Tutorial de 4 pasos con foco sobre la interfaz (valor y hora · brecha · mercado cerrado · noticias con demora). Se abre solo la primera vez o desde el botón "¿Cómo leer esto?".
 - Todo movimiento respeta prefers-reduced-motion. Vidrio y desenfoque limitados a paneles visibles; si un celular viejo se traba, se baja el desenfoque, no se saca el diseño.
@@ -61,7 +61,7 @@ Siguiente, en este orden (acordado 29/09):
 1. Noticias: hecho (29/09), 85 tests en verde. Falta verificar en la URL pública después del push.
 2. README: hecho (29/09).
 3. e2e con Playwright: hecho (29/09). 6 tests × escritorio/celular en modo mock, cada uno nombra su criterio (H0-1, H0-2, H0-3, H0-5, H0-7, H1-1, H1-2, H1-3). Si la entrada o el tutorial tapan la pantalla la primera vez, el e2e tiene que cerrarlos o saltearlos.
-4. Entrada "puertas" + tutorial. Antes de arrancar, avisarle a Mati: esa parte la hace en otro chat de Claude.
+4. Entrada "puertas" + tutorial: en otro chat, con el prompt `claude/prompt-animaciones-tutorial.md` del proyecto (29/09). Sin dependencias nuevas; el e2e marca entrada y tutorial como vistos y suma un test del tutorial.
 5. Lint: hecho (29/09). `npm run check` ahora corre tipos + lint + tests.
 6. No desarrollo: testing.md, bug-report.md (candidato: timeout a mitad de la lectura del cuerpo en fetch-json, ai-log 28/09), matriz de riesgos, estimaciones real/desvío, uso-de-ia.md, demo.md, ensayos.
 

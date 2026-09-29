@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter_Tight, Sora } from 'next/font/google';
 import './globals.css';
+import { DoorsIntro } from '@/components/DoorsIntro';
 
 const sora = Sora({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-sora' });
 const interTight = Inter_Tight({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-inter-tight' });
@@ -14,11 +15,15 @@ export const metadata: Metadata = {
 // Si no eligió ninguno, el CSS sigue la preferencia del sistema.
 const themeScript = `try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark'){document.documentElement.dataset.theme=t}}catch(e){}`;
 
+// Entrada "puertas" (globals.css): marca html[data-intro] antes del primer pintado, solo la primera vez por
+// sesión. Sin sessionStorage (navegador que lo bloquea) o con prefers-reduced-motion, no se anima.
+const introScript = `try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches&&!sessionStorage.getItem('intro-seen')){sessionStorage.setItem('intro-seen','1');document.documentElement.dataset.intro=''}}catch(e){}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es-AR" className={`${sora.variable} ${interTight.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: themeScript + introScript }} />
       </head>
       <body>
         <div className="blobs" aria-hidden="true">
@@ -26,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="blob blob-2" />
           <div className="blob blob-3" />
         </div>
+        <DoorsIntro />
         {children}
       </body>
     </html>

@@ -162,9 +162,64 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 .empty-state { display: flex; align-items: center; justify-content: center; min-height: 120px; border-radius: 16px; border: 1px solid var(--line); color: var(--fg-2); font-size: 14px; }
 
+/* Entrada "puertas": dos mitades de borde a borde. 200 ms quietas y 1,4 s de acercamiento (zoom lento sobre el
+   telón cerrado); queda cerrado hasta que el tablero tiene sus datos (DoorsIntro.tsx pone data-intro="open",
+   a los 6 s como máximo) y entonces se abre hacia los costados en 0,8 s mientras el tablero termina de
+   acercarse detrás (.page, escala 0,96 → 1). Ver CLAUDE.md, cambios del 29/09.
+   Van en pseudoelementos de html[data-intro] para estar desde el primer pintado (la marca la pone el script
+   inline de layout.tsx). pointer-events: none por si algo falla.
+   Sobre el telón, body::before/::after ponen el nombre y "Cargando…" con una línea que se subraya durante el
+   acercamiento: dice qué está pasando sin inventar un porcentaje.
+   El telón sigue al tema (fondo, manchas y texto con los tokens del tema): carbón en oscuro, crema en claro.
+   Se distingue de la página por las manchas, el título y el brillo de la unión; una lámina lisa del color del
+   fondo (primera versión) no se veía, e invertida (segunda) quedaba crema sobre el modo oscuro. */
+html[data-intro]::before, html[data-intro]::after {
+  content: ''; position: fixed; top: 0; bottom: 0; width: 50%; z-index: 100; pointer-events: none; background: var(--bg);
+}
+/* El shorthand lleva el nombre en cada regla: sin nombre, el compilador de CSS de Next lo reduce a "animation: none". */
+html[data-intro]::before {
+  left: 0; z-index: 101; transform-origin: right center; animation: door-approach 1400ms cubic-bezier(0.4, 0, 0.6, 1) 200ms both;
+  background: radial-gradient(circle at 25% 20%, var(--blob-1) 0%, transparent 55%), radial-gradient(circle at 90% 85%, var(--blob-2) 0%, transparent 50%), var(--bg);
+  box-shadow: 0 0 48px var(--accent-glow);
+}
+html[data-intro]::after {
+  right: 0; transform-origin: left center; animation: door-approach 1400ms cubic-bezier(0.4, 0, 0.6, 1) 200ms both;
+  background: radial-gradient(circle at 80% 30%, var(--blob-2) 0%, transparent 55%), radial-gradient(circle at 10% 90%, var(--blob-1) 0%, transparent 50%), var(--bg);
+}
+@keyframes door-approach { from { transform: scale(1); } to { transform: scale(1.08); } }
+/* Apertura: al cambiar el atributo cambia la animación; arranca en la escala en la que quedó el acercamiento. */
+html[data-intro='open']::before { animation: door-left-open 800ms cubic-bezier(0.76, 0, 0.24, 1) both; }
+html[data-intro='open']::after { animation: door-right-open 800ms cubic-bezier(0.76, 0, 0.24, 1) both; }
+@keyframes door-left-open { from { transform: scale(1.08); } to { transform: scale(1.08) translateX(-100%); } }
+@keyframes door-right-open { from { transform: scale(1.08); } to { transform: scale(1.08) translateX(100%); } }
+
+html[data-intro] body::before, html[data-intro] body::after {
+  position: fixed; left: 0; right: 0; z-index: 102; pointer-events: none; text-align: center; padding: 0 16px;
+}
+html[data-intro] body::before {
+  content: 'Tablero de mercado'; top: calc(50% - 44px);
+  color: var(--fg); font-size: clamp(24px, 4vw, 36px); font-weight: 600; letter-spacing: -0.02em;
+}
+html[data-intro] body::after {
+  content: 'Cargando cotizaciones y noticias…'; top: calc(50% + 10px); margin: 0 auto; width: max-content; max-width: calc(100% - 32px);
+  color: var(--fg-2); font-family: var(--font-inter-tight), system-ui, sans-serif; font-size: 14px; padding: 0 0 8px;
+  background: linear-gradient(var(--accent), var(--accent)) no-repeat left bottom / 0% 2px;
+  animation: door-line 1400ms cubic-bezier(0.4, 0, 0.6, 1) 200ms both;
+}
+@keyframes door-line { to { background-size: 100% 2px; } }
+html[data-intro='open'] body::before, html[data-intro='open'] body::after { animation: door-text-out 200ms ease-out both; }
+html[data-intro='open'] body::after { background-size: 100% 2px; }
+@keyframes door-text-out { to { opacity: 0; } }
+
+html[data-intro] .page { transform: scale(0.96); transform-origin: center 30%; }
+html[data-intro='open'] .page { animation: page-approach 800ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes page-approach { from { transform: scale(0.96); } to { transform: none; } }
+
 @media (prefers-reduced-motion: reduce) {
   .blob { animation: none; }
   .card { animation: none; }
+  html[data-intro]::before, html[data-intro]::after, html[data-intro] body::before, html[data-intro] body::after { display: none; }
+  html[data-intro] .page { animation: none; transform: none; }
 }
 
 /* Gráfico */
