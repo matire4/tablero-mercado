@@ -9,7 +9,7 @@ Documento técnico del challenge de Rubika. Primera versión aprobada el 27/09/2
 ```mermaid
 flowchart LR
   subgraph Cliente["Navegador (client components)"]
-    QG[QuoteGrid + QuoteCard]
+    QG[Dashboard + QuoteCard]
     HC[HistoryChart]
     NB[NewsBoard]
   end
@@ -64,10 +64,11 @@ Tres reglas que ordenan todo:
 /
 ├── CLAUDE.md, README.md, .env.example
 ├── docs/
+├── scripts/build-fixtures.mjs    genera los fixtures desde raw/
 ├── src/
 │   ├── app/
 │   │   ├── layout.tsx            shell + disclaimer fijo
-│   │   ├── page.tsx              compone QuoteGrid, HistoryChart, NewsBoard
+│   │   ├── page.tsx              monta Dashboard
 │   │   └── api/
 │   │       ├── quotes/route.ts
 │   │       ├── history/[asset]/route.ts
@@ -80,25 +81,26 @@ Tres reglas que ordenan todo:
 │   │   │   ├── dolarapi.ts
 │   │   │   ├── argentinadatos.ts riesgo país, histórico, feriados
 │   │   │   └── news.ts           GNews
-│   │   ├── business-days.ts      función pura: días hábiles (fin de semana + feriados). Única fuente de verdad
+│   │   ├── business-days.ts      función pura: días hábiles (fin de semana + feriados); la usa market-status
 │   │   ├── market-status.ts      función pura: (now, feriados) → MarketStatus
-│   │   ├── change.ts             función pura: variación del día contra el cierre hábil anterior
+│   │   ├── change.ts             función pura: variación del día contra la última entrada anterior del histórico
+│   │   ├── chart.ts              funciones puras del gráfico: escalas, ticks, path (sin librería)
+│   │   ├── format.ts             números y fechas es-AR, "hace X", textos de error
 │   │   ├── brecha.ts             funciones puras: calcBrecha, brechaSeries
 │   │   ├── data.ts               getQuotes / getHistory / getNews: mock o real, arma la respuesta
 │   │   └── fixtures/
 │   │       ├── raw/              respuestas reales bajadas con curl (evidencia; no se importan desde código)
 │   │       ├── quotes-normal.json, quotes-viernes-cerrado.json, quotes-sin-oficial.json
-│   │       ├── history-<asset>.json   últimos 60 días de cada serie
+│   │       ├── history-<asset>.json   últimos 90 días de cada serie
 │   │       ├── news.json
 │   │       └── feriados.json
 │   └── components/
-│       ├── QuoteGrid.tsx, QuoteCard.tsx
-│       ├── HistoryChart.tsx      Recharts, selector 7/30/90
-│       ├── NewsBoard.tsx
-│       ├── StateMessage.tsx      un componente, 3 variantes: carga / error / sin datos
+│       ├── Dashboard.tsx         carga /api/quotes cada 60 s; header con disclaimer y banner de mock
+│       ├── QuoteCard.tsx         tarjeta con sus estados (carga / error / valor / último cierre)
+│       ├── HistoryChart.tsx      SVG propio: precio + panel de brecha, selector 7/30/90, tabla accesible
+│       ├── NewsBoard.tsx         una carga al montar; carga / error / sin datos / parcial; idioma y tema por nota
 │       ├── MarketBadge.tsx       "Actualizado hace X min" o "Último cierre: día y hora"
-│       ├── MockBanner.tsx        "Datos de demostración, no reflejan el mercado"
-│       └── Disclaimer.tsx
+│       └── ThemeToggle.tsx       tema claro / oscuro
 └── tests/
     ├── unit/                     Vitest: business-days, change, market-status, brecha, adaptadores con MSW
     └── e2e/                      Playwright: happy path en modo mock
@@ -137,7 +139,7 @@ Descartados tras verificar: `turista` (404) y `solidario` (serie terminada en 20
 
 ## 4. Carga de datos en el cliente
 
-**Decisión:** los componentes del tablero son client components y hacen fetch a los route handlers desde el arranque. `QuoteGrid` refresca `/api/quotes` cada 60 s, alineado con la cache del server.
+**Decisión:** los componentes del tablero son client components y hacen fetch a los route handlers desde el arranque. `Dashboard` refresca `/api/quotes` cada 60 s, alineado con la cache del server.
 
 **Alternativa descartada:** server component con datos en el primer render + refresco cliente. Evita un round trip inicial, pero duplica el camino de datos y vuelve teórico el estado de "carga", que es un criterio de aceptación explícito. Se priorizó calidad y verificabilidad sobre milisegundos de primer render.
 
@@ -240,7 +242,7 @@ Los tres devuelven **siempre HTTP 200 con el `Result` en el body**. El error de 
 
 `USE_MOCK_DATA=true` saltea ambas capas y sirve fixtures.
 
-**Límites de uso.** DolarAPI y ArgentinaDatos: sin límite documentado conocido; con la cache la exposición queda acotada. GNews: 100 requests/día en plan gratis, cubierto por los 20 min de cache. El manejo de 429 se implementa igual porque es criterio de aceptación.
+**Límites de uso.** DolarAPI y ArgentinaDatos: sin límite documentado conocido; con la cache la exposición queda acotada. GNews: 100 requests/día en plan gratis; con 45 min de cache y dos búsquedas son 64/día (§10). El manejo de 429 se implementa igual porque es criterio de aceptación.
 
 **Timeout y errores.** `fetch-json.ts` es el único lugar que hace `fetch` a un proveedor: `AbortSignal.timeout(5000)`; timeout → `timeout`; HTTP 429 → `rate-limited`; otro ≥ 400 → `upstream`; body vacío o `[]` → `empty`; JSON que no cumple la forma esperada → `invalid`. Los adaptadores solo normalizan campos. Así el manejo de errores se escribe y se testea una sola vez.
 
@@ -248,7 +250,7 @@ Los tres devuelven **siempre HTTP 200 con el `Result` en el body**. El error de 
 
 ---
 
-## 8. Días hábiles: una sola fuente de verdad
+## 8. Días hábiles, variación del día y mercado cerrado
 
 `business-days.ts` exporta funciones puras que reciben la lista de feriados como parámetro:
 
@@ -257,7 +259,7 @@ isBusinessDay(date: string, holidays: string[]): boolean      // no es sábado, 
 previousBusinessDay(date: string, holidays: string[]): string
 ```
 
-La usan `market-status.ts` (para saber si hay mercado y cuál fue el último cierre) y `change.ts` (para saber contra qué día comparar). Ninguna otra parte del código decide qué es un día hábil.
+La usa `market-status.ts` (para saber si hay mercado y cuál fue el último cierre). Ninguna otra parte del código decide qué es un día hábil. La variación del día **no** la usa (ver abajo); en una versión anterior de este documento figuraba que sí.
 
 ### Variación del día (`change.ts`)
 
@@ -287,6 +289,10 @@ brechaSeries(paralelo: HistoryPoint[], oficial: HistoryPoint[]): HistoryPoint[]
 
 Se ejecutan solo en el server, en `data.ts`: `getQuotes` llena `gapVsOficial` de blue/MEP/tarjeta (o `null` si el oficial no vino, H1-4); `getHistory` llena `gapSeries` con el histórico del oficial. La tarjeta y el gráfico solo dibujan. Sin colores ni íconos de "bueno/malo".
 
+**Cómo se dibuja (desvío de H1-2 aprobado el 29/09).** H1-2 pedía la brecha superpuesta al precio con su propia escala, es decir un segundo eje Y. Se dibuja en un **panel propio debajo del precio**, alineado fecha a fecha y con su escala: dos ejes Y en un mismo gráfico hacen que el ojo compare las líneas como si compartieran unidad. Para oficial y riesgo país el panel no se renderiza (H1-3). Las líneas se distinguen por color y por trazo (sólido / punteado), con curva monótona que no inventa extremos, y hay una tabla accesible bajo "Ver como tabla".
+
+**Por qué sin librería de gráficos (29/09).** Se evaluó Recharts: trae 11 dependencias (Redux Toolkit, react-redux, immer, reselect…) para dos líneas. El gráfico es SVG propio: `lib/chart.ts` (escalas, ticks y path, funciones puras con tests) + `HistoryChart.tsx`. Regla general en CLAUDE.md: una librería entra solo si ahorra más de ~1 h, está mantenida y se anota acá con el motivo.
+
 ---
 
 ## 10. Noticias: GNews
@@ -309,6 +315,10 @@ Consecuencias: cada nota muestra "publicada hace X h" y el tablero nunca present
 
 **Descartados:** NewsData.io (misma demora, modelo de créditos más complejo), NewsAPI (plan gratis sin uso en producción), RSS de medios locales (sin demora ni key, pero más esfuerzo de parseo y normalización; queda como próximo paso).
 
+**Búsqueda en inglés (cambio del 29/09).** La búsqueda original en inglés exigía `Argentina AND (…)` en el título. El crudo real (`raw/gnews-search-en.json`) trajo 4 notas: la más nueva de hacía 19 días y una fuera de tema ("The Messi economy…") que entraba a `mercados` por la palabra `economy`. Se cambia a los temas internacionales del tablero (Fed, Wall Street, mercados emergentes, FMI) más Argentina con palabras financieras, y se saca `economy` del filtro. Mismo costo de cuota (una request por idioma). Verificado con curl el 29/09 (`raw/gnews-search-en-v2.json`): 10 notas del 28/09, GNews acepta los paréntesis anidados. El crudo mostró dos problemas más, resueltos en `news.ts` con test: `Fed` ahora distingue mayúsculas y excluye "Fed up" ("harto", entraba una nota de un subte en Bengaluru), y `dedupeByTitle` saca la misma nota publicada por dos medios ("EXCLUSIVE-…", "… (1)").
+
+**Panel de noticias (29/09).** Estados: carga, error, sin datos y **parcial** (si una de las dos búsquedas falló, una línea: "Una de las fuentes no respondió; la lista puede estar incompleta"). Aviso fijo de hasta 12 h de demora. Sin refresco automático en el cliente: con 12 h de demora, refrescar no aporta.
+
 Formato de respuesta verificado en `raw/gnews-search.json` (ver §3). `NewsItem.source` sale de `source.name`; `lang` del campo `lang`; `publishedAt` tal cual.
 
 ---
@@ -320,7 +330,8 @@ Formato de respuesta verificado en `raw/gnews-search.json` (ver §3). `NewsItem.
 | Fixture | Contenido |
 |---|---|
 | `history-{oficial,blue,bolsa,tarjeta,riesgo-pais}.json` | Últimos 90 días de cada histórico (igual al rango máximo del selector), formato ArgentinaDatos. |
-| `feriados.json`, `news.json` | Respuestas tal cual. |
+| `feriados.json` | Respuesta tal cual. |
+| `news.json` | `{ now, es, en }`: una respuesta real de GNews por idioma, tal cual, con su propio reloj = cuándo se bajó la última (29/09 09:32Z). Las noticias no usan el reloj del escenario: con el del viernes 25/09 las notas del 27/09 quedaban en el futuro. |
 | `quotes-normal.json` | `now` = lunes 28/09 10:00 ART; DolarAPI y riesgo país último, tal cual. |
 | `quotes-sin-oficial.json` | Igual, sin la casa `oficial`. La brecha debe mostrar "no disponible". |
 | `quotes-viernes-cerrado.json` | `now` = viernes 25/09 19:30 ART. No hay crudo de DolarAPI de ese día: se reconstruye con los valores del histórico del 25/09 y está marcado `derivadoDe`. |
@@ -338,4 +349,6 @@ Formato de respuesta verificado en `raw/gnews-search.json` (ver §3). `NewsItem.
 ---
 
 ## 13. Pendientes que este documento deja abiertos
+
+- Ninguno abierto del lado de datos al 29/09.
 

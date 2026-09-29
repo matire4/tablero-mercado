@@ -94,3 +94,16 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 ## 2026-09-29 · Tech Lead
 **Qué propuso:** H1-2 tal cual: brecha superpuesta al precio con un segundo eje Y.
 **Por qué lo cuestioné:** dos ejes Y en un gráfico es el error clásico de visualización: el ojo compara las líneas como si compartieran escala. Propuse un panel de brecha debajo del precio, alineado en el tiempo. Es un desvío de una decisión cerrada, avisado antes de implementar; se cambia a superposición en 15 min si Mati lo prefiere.
+**Qué hice:** Mati aprobó el panel separado el 29/09. Queda anotado en CLAUDE.md como desvío de H1-2; se le pide al PO que actualice producto.md.
+
+## 2026-09-29 · Tech Lead
+**Qué propuso:** búsqueda de noticias en inglés `Argentina AND (peso OR "central bank" OR inflation OR … OR economy)`, filtrada por título.
+**Por qué estaba mal:** exigir "Argentina" más una palabra financiera en el título en inglés casi no da resultados. El crudo real trajo 4 notas: la más nueva del 10/09 (19 días) y una fuera de tema ("The Messi economy…") que entraba al tema `mercados` por la palabra `economy`. El pendiente "la búsqueda en inglés no devolvió notas" no era un fallo de Vercel: era la búsqueda.
+**Cómo lo detecté:** curl de la búsqueda en inglés guardado en `raw/gnews-search-en.json` para armar el fixture del mock.
+**Qué hice:** opciones a Mati; eligió una búsqueda internacional (Fed, Wall Street, mercados emergentes, FMI y Argentina con palabras financieras) y sacar `economy` del filtro. Se verifica con curl antes de tocar código.
+
+## 2026-09-29 · Tech Lead
+**Qué propuso:** CLAUDE.md con "entrega 08/10" y una línea que decía que business-days se usaba también para la variación del día.
+**Por qué estaba mal:** la fecha enviada a Rubika es miércoles 07/10 (08/10 es el día 10 contado desde el 28/09, no la entrega). Lo de business-days contradecía la decisión del 28/09 en el mismo archivo (la variación no usa días hábiles).
+**Cómo lo detecté:** al retomar en un chat nuevo de Tech Lead, releyendo CLAUDE.md contra el código y el mail.
+**Qué hice:** corregido en CLAUDE.md y horas.md.

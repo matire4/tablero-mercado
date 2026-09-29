@@ -30,3 +30,13 @@ La matriz completa (riesgo, probabilidad, impacto, mitigación) la arma el rol Q
 
 ### 2026-09-28 · Variación del día depende de un segundo proveedor
 **Riesgo:** DolarAPI no devuelve variación diaria; se calcula con el histórico de ArgentinaDatos. Si ese histórico no está disponible, la tarjeta muestra precio y brecha pero "variación no disponible". Cache de 24 h del histórico reduce la ventana de exposición.
+
+### 2026-09-29 · Noticias en inglés escasas y viejas
+**Qué pasó:** la búsqueda en inglés (`Argentina AND (…)` en el título) devolvió 4 notas; la más nueva era del 10/09 (19 días) y una estaba fuera de tema ("The Messi economy…", que entraba a `mercados` por `economy`). Explica el pendiente del 28/09 "la búsqueda en inglés no devolvió notas": no era un fallo de Vercel, era la búsqueda.
+**Impacto:** el alcance base promete noticias locales e internacionales; con esa búsqueda el lado internacional queda vacío o viejo.
+**Mitigación implementada (29/09):** búsqueda internacional por temas del tablero (Fed, Wall Street, mercados emergentes, FMI) más Argentina con palabras financieras; `economy` fuera del filtro; `Fed` sensible a mayúsculas (excluye "Fed up"); notas repetidas entre medios se sacan por título. Verificado con curl: 10 notas del día anterior.
+**Riesgo residual:** las notas en inglés son mayormente de mercado estadounidense (Wall Street, Fed) y alguna es de baja calidad (una nota promocional de cripto entró por "Federal Reserve"). Argentina casi no aparece en medios en inglés con ese filtro. Se cuenta en la demo como límite del plan gratis y del filtro por palabras (decisión del 29/09: se deja así; nota en demo.md).
+
+### 2026-09-29 · Lista de noticias larga en celular
+**Qué pasa:** con dos búsquedas de hasta 10 notas, el panel muestra hasta ~20 notas seguidas; en celular es un scroll largo para un tablero "de un vistazo".
+**Decisión:** se deja la lista completa. Se evaluó mostrar 8 y un botón "ver más" (~15 min) y se descartó por no sumar alcance. El panel va último en la página, así que no tapa las cotizaciones ni el gráfico.
