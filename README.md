@@ -39,7 +39,7 @@ npm run dev                  # http://localhost:3000
 |---|---|
 | `npm run dev` | Servidor de desarrollo |
 | `npm run build` / `npm start` | Build y servidor de producción |
-| `npm run check` | Tipos (`tsc --noEmit`) + tests unitarios (Vitest + MSW) |
+| `npm run check` | Tipos (`tsc --noEmit`) + lint + tests unitarios (Vitest + MSW) |
 | `npm test` | Solo tests unitarios |
 | `npm run lint` | ESLint |
 | `npm run fixtures` | Regenera los fixtures del modo mock desde las respuestas reales en `src/lib/fixtures/raw/` |

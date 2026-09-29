@@ -62,7 +62,7 @@ Siguiente, en este orden (acordado 29/09):
 2. README: hecho (29/09).
 3. e2e con Playwright (happy path en modo mock).
 4. Entrada "puertas" + tutorial. Antes de arrancar, avisarle a Mati: esa parte la hace en otro chat de Claude.
-5. `npm run lint`: 2 errores de antes de este paso (react-hooks/set-state-in-effect en HistoryChart y ThemeToggle). Corregir antes de entregar; el build de Vercel no corre lint.
+5. Lint: hecho (29/09). `npm run check` ahora corre tipos + lint + tests.
 6. No desarrollo: testing.md, bug-report.md (candidato: timeout a mitad de la lectura del cuerpo en fetch-json, ai-log 28/09), matriz de riesgos, estimaciones real/desvío, uso-de-ia.md, demo.md, ensayos.
 
 Abierto: producto.md no refleja los desvíos aprobados en desarrollo (brecha en panel propio, alcance de diseño, demora y cuota de noticias). Prompt al PO pasado el 29/09; cuando vuelva, copiar producto.md al repo.

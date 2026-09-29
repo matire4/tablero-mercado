@@ -107,3 +107,16 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 **Por qué estaba mal:** la fecha enviada a Rubika es miércoles 07/10 (08/10 es el día 10 contado desde el 28/09, no la entrega). Lo de business-days contradecía la decisión del 28/09 en el mismo archivo (la variación no usa días hábiles).
 **Cómo lo detecté:** al retomar en un chat nuevo de Tech Lead, releyendo CLAUDE.md contra el código y el mail.
 **Qué hice:** corregido en CLAUDE.md y horas.md.
+
+## 2026-09-29 · Tech Lead
+**Qué propuso:** en `HistoryChart` y `ThemeToggle`, `setState` dentro de `useEffect` (poner "cargando" y cerrar el tooltip al cambiar de activo; leer el tema al montar).
+**Por qué estaba mal:** la regla `react-hooks/set-state-in-effect` lo marca como error: provoca un render extra en cascada. No rompía nada visible, pero `npm run lint` fallaba con 2 errores y quien revise el repo lo corre.
+**Cómo lo detecté:** al retomar en un chat nuevo corrí `npm run lint`; el script `check` solo corría tipos y tests, así que nunca había saltado.
+**Qué hice:** en el gráfico, "cargando" se deriva de comparar la clave pedida (activo + rango) con la de la última respuesta, y el tooltip se cierra en el mismo click que cambia el activo. El tema se lee con `useSyncExternalStore` (atributo `data-theme` + preferencia del sistema), que además sigue en vivo un cambio del sistema. Verificado en el navegador: tema, persistencia al recargar, tooltip y panel de brecha. `check` ahora incluye lint.
+
+## 2026-09-29 · Tech Lead
+**Qué propuso:** la tabla accesible "Ver como tabla" dentro de la misma fila flex que la leyenda del gráfico.
+**Por qué estaba mal:** al abrirla, la tabla estiraba la fila: la leyenda quedaba centrada en un hueco vacío enorme y la tabla, angosta, pegada a la derecha. Las capturas de verificación del gráfico se habían sacado con la tabla cerrada.
+**Cómo lo detecté:** Mati, abriendo la tabla en el navegador.
+**Qué hice:** abierta ocupa el ancho debajo de la leyenda (máximo 560 px, alineada a la derecha), con altura máxima, scroll propio, encabezado fijo y fechas DD/MM/AAAA. Verificado en escritorio y celular.
+
