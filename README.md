@@ -41,6 +41,7 @@ npm run dev                  # http://localhost:3000
 | `npm run build` / `npm start` | Build y servidor de producción |
 | `npm run check` | Tipos (`tsc --noEmit`) + lint + tests unitarios (Vitest + MSW) |
 | `npm test` | Solo tests unitarios |
+| `npm run test:e2e` | Tests end-to-end con Playwright en modo mock, escritorio y celular (levanta el server solo) |
 | `npm run lint` | ESLint |
 | `npm run fixtures` | Regenera los fixtures del modo mock desde las respuestas reales en `src/lib/fixtures/raw/` |
 
@@ -59,7 +60,7 @@ Los nombres están en [`.env.example`](.env.example). Ningún valor real va al r
 - **Next.js 16 (App Router) + TypeScript**, deploy en **Vercel**. Los route handlers (`/api/quotes`, `/api/history/[asset]`, `/api/news`) hacen de proxy: las claves quedan en el server y la cache (60 s cotizaciones, 45 min noticias, 24 h histórico y feriados) protege los límites de uso de cada proveedor.
 - **Sin librería de gráficos:** SVG propio. Recharts traía 11 dependencias (Redux Toolkit incluido) para dibujar dos líneas.
 - **Sin Tailwind:** un solo `globals.css` con tokens de tema.
-- **Tests:** Vitest + MSW para los adaptadores (timeout, 429, respuesta vacía, JSON inválido) y funciones puras (brecha, días hábiles, variación, estado de mercado).
+- **Tests:** Vitest + MSW para los adaptadores (timeout, 429, respuesta vacía, JSON inválido) y funciones puras (brecha, días hábiles, variación, estado de mercado). Playwright para los e2e: cada test nombra el criterio de aceptación que cubre (H0-1, H1-2…). La primera vez: `npx playwright install chromium`.
 
 **APIs:** [DolarAPI](https://dolarapi.com) (cotizaciones), [ArgentinaDatos](https://argentinadatos.com) (riesgo país, histórico, feriados) y [GNews](https://gnews.io) (noticias, plan gratis: 100 consultas por día y hasta 12 h de demora).
 

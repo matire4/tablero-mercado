@@ -118,5 +118,5 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 **Qué propuso:** la tabla accesible "Ver como tabla" dentro de la misma fila flex que la leyenda del gráfico.
 **Por qué estaba mal:** al abrirla, la tabla estiraba la fila: la leyenda quedaba centrada en un hueco vacío enorme y la tabla, angosta, pegada a la derecha. Las capturas de verificación del gráfico se habían sacado con la tabla cerrada.
 **Cómo lo detecté:** Mati, abriendo la tabla en el navegador.
-**Qué hice:** abierta ocupa el ancho debajo de la leyenda (máximo 560 px, alineada a la derecha), con altura máxima, scroll propio, encabezado fijo y fechas DD/MM/AAAA. Verificado en escritorio y celular.
+**Qué hice:** abierta ocupa el ancho debajo de la leyenda (máximo 520 px, centrada; primero quedó alineada a la derecha y en escritorio se veía desbalanceada), con altura máxima, scroll propio, encabezado fijo y fechas DD/MM/AAAA. Verificado en escritorio y celular.
 

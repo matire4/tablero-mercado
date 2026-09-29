@@ -1,7 +1,7 @@
 # Producto — Tablero de mercado
 
 Documento de producto del challenge técnico de Rubika (puesto Product Engineer).
-Cerrado el 26/09/2026 en la fase Producto. Las decisiones de acá se replican en `CLAUDE.md` y no se reabren sin anotarlo.
+Cerrado el 26/09/2026 en la fase Producto; actualizado el 29/09/2026 con los desvíos aprobados durante el desarrollo (marcados con fecha). Las decisiones de acá se replican en `CLAUDE.md` y no se reabren sin anotarlo.
 
 ---
 
@@ -42,6 +42,7 @@ No hay un enunciado formal más allá de la consigna general (tablero de cotizac
 | S4 | Uso mixto: vistazo rápido en celular y consulta en escritorio. Responsive obligatorio. | El cliente pidió UX/UI óptima en ambos. | — |
 | S5 | UI en español rioplatense. | Usuario minorista argentino. | Cambiar textos; no cambia alcance. |
 | S6 | Ventana de mercado única y simplificada: lunes a viernes, 10 a 18 hs Argentina, más feriados nacionales. | Cada activo tiene horario distinto (rueda, blue, Wall Street); una ventana única es la simplificación defendible en este plazo. | Ventanas por activo quedan en próximos pasos. |
+| S7 *(28/09)* | Las noticias salen del plan gratuito de GNews: llegan con hasta 12 h de demora y hay un límite de 100 consultas por día. Por eso el servidor las vuelve a pedir como máximo cada 45 min, el panel avisa la demora y cada nota muestra hace cuánto se publicó. | Es el único proveedor gratuito con búsqueda por idioma y país que se encontró; sumar un segundo proveedor para repartir la cuota se descartó (dos formatos, dos límites, dos claves). | Con plan pago desaparece la demora y sube la cuota; el código no cambia, solo la configuración. |
 
 ---
 
@@ -75,17 +76,35 @@ Basado en un relevamiento rápido de lo que publican los sitios de referencia ar
 ### Alcance base (se implementa, no cuenta como feature)
 
 - Tablero con las 5 tarjetas: valor, variación del día, "actualizado hace X min".
+- Variación del día *(cerrado 28/09)*: se calcula contra el último dato del histórico con fecha anterior a la del dato actual. Un lunes compara contra el cierre del viernes. Si el histórico no está disponible, la tarjeta muestra el precio y "variación no disponible".
 - Gráfico histórico: línea de venta, un activo por vez, selector 7 / 30 / 90 días. Se eligió línea simple (no velas, no comparación multi-activo, no variación porcentual) porque es lo que el usuario ya sabe leer.
 - Tablero de noticias económicas locales e internacionales, filtradas por temas fijos (dólar, BCRA, Fed, inflación, riesgo país, mercados). Cada nota con título, fuente, fecha, idioma y link. No afirma qué noticia impacta a qué precio.
+  - "Internacional" *(29/09)* son los temas del tablero vistos desde afuera: Fed, Wall Street, mercados emergentes, FMI. Los medios en inglés casi no publican sobre Argentina con esas palabras en el título, así que las notas en inglés son mayormente de mercado internacional, no de Argentina.
+  - El tema se asigna por palabras del título: es una aproximación. Las notas que no caen en ningún tema fijo se descartan; "mercados" no es comodín.
+  - La lista se muestra completa, sin "ver más" *(29/09)*: hasta unas 20 notas, al final de la página, para que no tape cotizaciones ni gráfico.
+  - Demora y cuota según S7: el panel avisa que las notas pueden tener hasta 12 h; no se presentan como última hora.
 - Cuatro estados de interfaz, visibles y distintos: carga, error, sin datos y **mercado cerrado**.
 - Estado mercado cerrado: fuera de la ventana de mercado (S6) cada tarjeta mantiene el último valor conocido y muestra "Último cierre: día y hora" en lugar de "actualizado hace X". La app sigue consultando las fuentes; solo cambia cómo presenta la antigüedad del dato.
 - Disclaimer visible sin scroll: la información no constituye recomendación de inversión.
-- Modo mock con datos guardados (plan B de la demo y base de tests).
+- Modo mock con datos guardados (plan B de la demo y base de tests), con banner fijo de "Datos de demostración".
 - Responsive.
+
+### Alcance de diseño agregado el 28/09 (no es una feature)
+
+Alcance de interfaz aceptado con su costo (3-4 h, ver `estimaciones.md`), a partir de un mockup aprobado. Motivo: el tablero es la cara del producto frente a un gerente no técnico; una interfaz cuidada es parte de "bien contado", no un extra. Incluye:
+
+- Tema claro y oscuro que sigue la preferencia del sistema, con botón para cambiarlo y elección guardada en el navegador.
+- Animación de entrada de 0,8 s, solo la primera vez por sesión, con el tablero ya cargado detrás: no bloquea los datos.
+- Tarjetas que entran escalonadas.
+- El gráfico se dibuja al cambiar de activo o de rango.
+- Tabla accesible "Ver como tabla" debajo del gráfico.
+- Tutorial de 4 pasos (valor y hora · brecha · mercado cerrado · noticias con demora) que se abre solo la primera vez o desde el botón "¿Cómo leer esto?".
+
+Todo movimiento respeta `prefers-reduced-motion`. Siguen vigentes: sin flechas ni verde/rojo en variación y brecha; números en formato es-AR.
 
 ### Feature 1 — Brecha cambiaria (se implementa)
 
-Cada dólar paralelo (blue, MEP, tarjeta) muestra su diferencia porcentual contra el oficial, y el gráfico histórico superpone la evolución de esa brecha cuando el activo seleccionado es un paralelo. Convierte cinco precios en una lectura: "el blue subió" pasa a ser "el blue se despegó del oficial". No usa colores ni íconos de "bueno/malo": muestra, no recomienda.
+Cada dólar paralelo (blue, MEP, tarjeta) muestra su diferencia porcentual contra el oficial. Cuando el activo seleccionado en el gráfico es un paralelo, la evolución de esa brecha se muestra en un panel propio debajo del precio, alineado fecha a fecha, con su escala y su leyenda *(desvío aprobado el 29/09: la versión original la superponía al precio con un segundo eje Y; se cambió porque dos ejes Y en un mismo gráfico hacen comparar líneas de unidades distintas como si fueran la misma)*. Convierte cinco precios en una lectura: "el blue subió" pasa a ser "el blue se despegó del oficial". No usa colores ni íconos de "bueno/malo": muestra, no recomienda.
 
 Por qué esta: entra en presupuesto (2-3 h), se calcula con datos que ya están en el tablero, y es el análisis que un usuario argentino hace de cabeza.
 
@@ -116,7 +135,7 @@ Por qué se especifica y no se implementa: 5-7 h, y depende de un histórico por
 
 Criterios de aceptación:
 
-1. **Given** las fuentes responden, **when** abro el tablero, **then** veo 5 tarjetas (blue, MEP, oficial, tarjeta, riesgo país) con valor, variación del día, "actualizado hace X min", y el disclaimer de no recomendación visible sin scroll.
+1. **Given** las fuentes responden, **when** abro el tablero, **then** veo 5 tarjetas (blue, MEP, oficial, tarjeta, riesgo país) con valor, variación del día (calculada contra el último dato anterior del histórico; un lunes, contra el cierre del viernes), "actualizado hace X min", y el disclaimer de no recomendación visible sin scroll.
 2. **Given** las fuentes responden, **when** toco una tarjeta, **then** el gráfico muestra la serie de venta de ese activo con selector 7 / 30 / 90 días.
 3. **Given** las fuentes responden, **when** miro el tablero de noticias, **then** cada nota tiene título, fuente, fecha, idioma y link, y pertenece a los temas fijos definidos.
 4. **Given** es sábado, domingo o feriado nacional, **when** abro el tablero, **then** cada tarjeta muestra el último valor conocido con "Último cierre: día y hora" y ningún indicador de error.
@@ -133,7 +152,7 @@ Definition of Done: los 7 criterios verificados a mano en la URL pública y en m
 Criterios de aceptación:
 
 1. **Given** oficial y blue/MEP/tarjeta tienen valor, **when** miro sus tarjetas, **then** cada una muestra "Brecha vs oficial: +X %", calculada sobre el precio de venta, con un decimal.
-2. **Given** selecciono blue, MEP o tarjeta en el gráfico, **when** miro la serie, **then** veo la brecha del período como serie superpuesta con su propia escala y leyenda.
+2. **Given** selecciono blue, MEP o tarjeta en el gráfico, **when** miro la serie, **then** debajo del panel de precio veo un panel propio con la brecha del período, alineado fecha a fecha con el precio, con su propia escala y su leyenda, y sin un segundo eje sobre el gráfico de precio. *(Reescrito el 29/09; la versión del 26/09 decía "serie superpuesta con su propia escala".)*
 3. **Given** selecciono oficial o riesgo país, **when** miro el gráfico, **then** no aparece la brecha ni un espacio vacío donde iría.
 4. **Given** el oficial no tiene valor (error o vacío), **when** miro las tarjetas, **then** la brecha muestra "no disponible" y el precio del activo sigue visible.
 5. **Given** es mercado cerrado, **when** miro la brecha, **then** se calcula sobre los últimos valores conocidos y lleva la misma leyenda de último cierre.

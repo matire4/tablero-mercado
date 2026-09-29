@@ -60,9 +60,9 @@ Hecho (28-29/09): fixtures; business-days + change + market-status con tests; sc
 Siguiente, en este orden (acordado 29/09):
 1. Noticias: hecho (29/09), 85 tests en verde. Falta verificar en la URL pública después del push.
 2. README: hecho (29/09).
-3. e2e con Playwright (happy path en modo mock).
+3. e2e con Playwright: hecho (29/09). 6 tests × escritorio/celular en modo mock, cada uno nombra su criterio (H0-1, H0-2, H0-3, H0-5, H0-7, H1-1, H1-2, H1-3). Si la entrada o el tutorial tapan la pantalla la primera vez, el e2e tiene que cerrarlos o saltearlos.
 4. Entrada "puertas" + tutorial. Antes de arrancar, avisarle a Mati: esa parte la hace en otro chat de Claude.
 5. Lint: hecho (29/09). `npm run check` ahora corre tipos + lint + tests.
 6. No desarrollo: testing.md, bug-report.md (candidato: timeout a mitad de la lectura del cuerpo en fetch-json, ai-log 28/09), matriz de riesgos, estimaciones real/desvío, uso-de-ia.md, demo.md, ensayos.
 
-Abierto: producto.md no refleja los desvíos aprobados en desarrollo (brecha en panel propio, alcance de diseño, demora y cuota de noticias). Prompt al PO pasado el 29/09; cuando vuelva, copiar producto.md al repo.
+producto.md y estimaciones.md actualizados por el PO el 29/09 (desvíos de desarrollo, S7, alcance de diseño, real de Día 0 / Producto / arquitectura) y copiados al repo.

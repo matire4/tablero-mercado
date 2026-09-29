@@ -103,7 +103,7 @@ Tres reglas que ordenan todo:
 │       └── ThemeToggle.tsx       tema claro / oscuro
 └── tests/
     ├── unit/                     Vitest: business-days, change, market-status, brecha, adaptadores con MSW
-    └── e2e/                      Playwright: happy path en modo mock
+    └── e2e/                      Playwright en modo mock, escritorio y celular: tarjetas, brecha, gráfico, noticias, proveedor caído, responsive
 ```
 
 ---
@@ -292,6 +292,8 @@ Se ejecutan solo en el server, en `data.ts`: `getQuotes` llena `gapVsOficial` de
 **Cómo se dibuja (desvío de H1-2 aprobado el 29/09).** H1-2 pedía la brecha superpuesta al precio con su propia escala, es decir un segundo eje Y. Se dibuja en un **panel propio debajo del precio**, alineado fecha a fecha y con su escala: dos ejes Y en un mismo gráfico hacen que el ojo compare las líneas como si compartieran unidad. Para oficial y riesgo país el panel no se renderiza (H1-3). Las líneas se distinguen por color y por trazo (sólido / punteado), con curva monótona que no inventa extremos, y hay una tabla accesible bajo "Ver como tabla".
 
 **Por qué sin librería de gráficos (29/09).** Se evaluó Recharts: trae 11 dependencias (Redux Toolkit, react-redux, immer, reselect…) para dos líneas. El gráfico es SVG propio: `lib/chart.ts` (escalas, ticks y path, funciones puras con tests) + `HistoryChart.tsx`. Regla general en CLAUDE.md: una librería entra solo si ahorra más de ~1 h, está mantenida y se anota acá con el motivo.
+
+**`@playwright/test` (devDependency, 29/09).** Estaba en el plan desde el inicio ("1 test Playwright happy path" en `estimaciones.md`). Solo desarrollo: no llega al bundle. Alternativa descartada: probar la UI a mano en cada cambio, que es justo lo que se olvida antes de una demo. Los e2e corren en modo mock (`playwright.config.ts` levanta `next dev` con `USE_MOCK_DATA=true`), así no dependen de las APIs ni gastan cuota de GNews.
 
 ---
 
