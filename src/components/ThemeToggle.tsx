@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -8,20 +8,27 @@ function systemTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
+// El tema vive fuera de React: el atributo data-theme de <html> (lo pone el script de layout.tsx antes del
+// primer pintado) o, si no hay elección, la preferencia del sistema. useSyncExternalStore lo lee sin
+// setState dentro de un efecto y se actualiza solo si cambia cualquiera de los dos.
+function subscribe(onChange: () => void) {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  const mo = new MutationObserver(onChange);
+  mq.addEventListener('change', onChange);
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  return () => { mq.removeEventListener('change', onChange); mo.disconnect(); };
+}
+const getSnapshot = (): Theme => (document.documentElement.dataset.theme as Theme | undefined) ?? systemTheme();
+const getServerSnapshot = (): Theme | null => null; // en el server no se sabe: el ícono aparece al hidratar
+
 /** Botón de tema. Sin elección guardada, sigue al sistema; al tocar, guarda la elección en el navegador. */
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme | null>(null);
-
-  useEffect(() => {
-    const stored = document.documentElement.dataset.theme as Theme | undefined;
-    setTheme(stored ?? systemTheme());
-  }, []);
+  const theme = useSyncExternalStore<Theme | null>(subscribe, getSnapshot, getServerSnapshot);
 
   function toggle() {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
+    document.documentElement.dataset.theme = next; // el MutationObserver re-renderiza
     try { localStorage.setItem('theme', next); } catch { /* navegador sin storage: el tema dura la sesión */ }
-    setTheme(next);
   }
 
   const label = theme === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro';

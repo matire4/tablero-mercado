@@ -207,11 +207,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .chart-state { display: flex; flex-direction: column; gap: 8px; min-height: 160px; justify-content: center; align-items: center; text-align: center; font-size: 14px; color: var(--fg-2); }
 .chart-state.error { border: 1px dashed var(--error-border); border-radius: 16px; }
 .chart-state.empty { border: 1px solid var(--line); border-radius: 16px; }
-.chart-legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--fg-2); align-items: center; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; color: var(--fg-2); align-items: center; }
+/* "Ver como tabla": cerrado queda a la derecha de la leyenda; abierto ocupa todo el ancho debajo,
+   con altura máxima y scroll propio (antes estiraba la fila de la leyenda y dejaba un hueco vacío). */
 .table-toggle { margin-left: auto; }
-.table-toggle summary { cursor: pointer; color: var(--fg-3); }
-.table-toggle table { margin-top: 8px; border-collapse: collapse; font-size: 12px; }
-.table-toggle td, .table-toggle th { padding: 3px 10px; text-align: right; border-bottom: 1px solid var(--line); }
+.table-toggle[open] { flex-basis: 100%; margin-left: 0; }
+.table-toggle summary { cursor: pointer; color: var(--fg-3); width: max-content; margin-left: auto; }
+.table-wrap { margin: 8px 0 0 auto; max-width: 560px; max-height: 260px; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; }
+.table-toggle table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.table-toggle td, .table-toggle th { padding: 5px 12px; text-align: right; border-bottom: 1px solid var(--line); }
+.table-toggle th { position: sticky; top: 0; background: var(--bg); color: var(--fg-2); font-weight: 500; }
 .table-toggle th:first-child, .table-toggle td:first-child { text-align: left; }
 
 @media (prefers-reduced-motion: reduce) { .chart-svg .line { animation: none; stroke-dashoffset: 0; } .chart-svg .line.gap { opacity: 1; } }

@@ -9,7 +9,7 @@ import { getMarketStatus, toArgentinaTime } from './market-status';
 import { fail, ok } from './result';
 import type { AssetId, HistoryPoint, HistoryResponse, MarketStatus, NewsResponse, Quote, QuotesResponse, Result } from './types';
 import { fetchDolares, normalizeDolares } from './providers/dolarapi';
-import { fetchFeriados, fetchHistorico, fetchRiesgoUltimo, normalizeFeriados, normalizeHistorico, normalizeRiesgoUltimo } from './providers/argentinadatos';
+import { fetchFeriados, fetchHistorico, fetchRiesgoUltimo, normalizeHistorico, normalizeRiesgoUltimo } from './providers/argentinadatos';
 import { fetchNews, mergeNews, normalizeNews } from './providers/news';
 
 import feriadosFixture from './fixtures/feriados.json';

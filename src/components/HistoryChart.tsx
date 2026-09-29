@@ -19,12 +19,14 @@ const GAP_H = 96;
 const GAP_SEP = 26;
 
 const fmtDate = (d: string) => `${d.slice(8, 10)}/${d.slice(5, 7)}`;
+const fmtDateLong = (d: string) => `${fmtDate(d)}/${d.slice(0, 4)}`;
 
 export function HistoryChart() {
   const [asset, setAsset] = useState<AssetId>('blue');
   const [range, setRange] = useState<Range>(30);
-  const [data, setData] = useState<Result<HistoryResponse> | null>(null);
-  const [loading, setLoading] = useState(true);
+  // La última respuesta recibida, con la clave (activo + rango) que la pidió.
+  // "Cargando" se deriva: la clave pedida todavía no es la de la última respuesta. Sin setState dentro del efecto.
+  const [loaded, setLoaded] = useState<{ key: string; body: Result<HistoryResponse> } | null>(null);
   const [hover, setHover] = useState<number | null>(null);
   const [width, setWidth] = useState(640);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -38,20 +40,26 @@ export function HistoryChart() {
     return () => ro.disconnect();
   }, []);
 
+  const key = `${asset}-${range}`;
+  const data = loaded?.body ?? null;
+  const loading = loaded?.key !== key;
+
   useEffect(() => {
     const ctrl = new AbortController();
-    setLoading(true);
-    setHover(null);
+    const k = `${asset}-${range}`;
     fetch(`/api/history/${asset}?range=${range}`, { signal: ctrl.signal })
       .then((r) => r.json() as Promise<Result<HistoryResponse>>)
-      .then((body) => { setData(body); setLoading(false); })
+      .then((body) => setLoaded({ key: k, body }))
       .catch((err) => {
         if (err?.name === 'AbortError') return;
-        setData({ ok: false, error: { kind: 'upstream', message: 'No se pudo conectar' } });
-        setLoading(false);
+        setLoaded({ key: k, body: { ok: false, error: { kind: 'upstream', message: 'No se pudo conectar' } } });
       });
     return () => ctrl.abort();
   }, [asset, range]);
+
+  // Cambiar de activo o de rango cierra el tooltip en el mismo evento (antes se hacía dentro del efecto).
+  const selectAsset = (a: AssetId) => { setHover(null); setAsset(a); };
+  const selectRange = (r: Range) => { setHover(null); setRange(r); };
 
   const isRiesgo = asset === 'riesgo-pais';
   const unit = isRiesgo ? 'pts' : '$';
@@ -101,12 +109,12 @@ export function HistoryChart() {
       <div className="chart-controls">
         <div className="pills" role="tablist" aria-label="Activo">
           {ASSETS.map((a) => (
-            <button key={a.id} role="tab" aria-selected={asset === a.id} className={`pill-btn ${asset === a.id ? 'active' : ''}`} onClick={() => setAsset(a.id)}>{a.label}</button>
+            <button key={a.id} role="tab" aria-selected={asset === a.id} className={`pill-btn ${asset === a.id ? 'active' : ''}`} onClick={() => selectAsset(a.id)}>{a.label}</button>
           ))}
         </div>
         <div className="segmented" role="tablist" aria-label="Período">
           {RANGES.map((r) => (
-            <button key={r} role="tab" aria-selected={range === r} className={`seg-btn ${range === r ? 'active' : ''}`} onClick={() => setRange(r)}>{r} d</button>
+            <button key={r} role="tab" aria-selected={range === r} className={`seg-btn ${range === r ? 'active' : ''}`} onClick={() => selectRange(r)}>{r} d</button>
           ))}
         </div>
       </div>
@@ -203,14 +211,16 @@ export function HistoryChart() {
         {!loading && data?.ok && series.length > 0 && (
           <details className="table-toggle">
             <summary>Ver como tabla</summary>
-            <table>
-              <thead><tr><th>Fecha</th><th>{isRiesgo ? 'Puntos' : 'Venta'}</th>{hasGap && <th>Brecha</th>}</tr></thead>
-              <tbody>
-                {series.map((p) => (
-                  <tr key={p.date}><td>{p.date}</td><td>{formatNumber(p.value)}</td>{hasGap && <td>{gapByDate.has(p.date) ? formatPct(gapByDate.get(p.date)!) : '—'}</td>}</tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="table-wrap">
+              <table>
+                <thead><tr><th>Fecha</th><th>{isRiesgo ? 'Puntos' : 'Venta'}</th>{hasGap && <th>Brecha</th>}</tr></thead>
+                <tbody>
+                  {series.map((p) => (
+                    <tr key={p.date}><td>{fmtDateLong(p.date)}</td><td>{formatNumber(p.value)}</td>{hasGap && <td>{gapByDate.has(p.date) ? formatPct(gapByDate.get(p.date)!) : '—'}</td>}</tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </details>
         )}
       </div>
