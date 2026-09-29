@@ -93,3 +93,72 @@ test('H0-7 · en celular no hay scroll horizontal y las tarjetas se apilan', asy
   const xs = await page.locator('.card').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().x)));
   expect(new Set(xs).size).toBe(1); // una sola columna
 });
+
+// Tutorial (alcance de diseño, producto.md §4): el recuadro tiene que caer sobre el elemento real de cada paso.
+const TUTORIAL_ANCHORS = ['valor', 'brecha', 'mercado', 'noticias'];
+
+/** Diferencia máxima, en px, entre el recuadro del tutorial y el elemento del paso (top, left, ancho, alto). */
+function boxOffset(page: import('@playwright/test').Page, anchor: string) {
+  return page.evaluate((a) => {
+    const box = document.querySelector('[data-testid="tour-box"]')?.getBoundingClientRect();
+    const el = document.querySelector(`[data-tutorial="${a}"]`)?.getBoundingClientRect();
+    if (!box || !el) return Infinity;
+    return Math.max(Math.abs(box.top - el.top), Math.abs(box.left - el.left), Math.abs(box.width - el.width), Math.abs(box.height - el.height));
+  }, anchor);
+}
+
+test('Tutorial · se abre desde "¿Cómo leer esto?", resalta cada paso, Esc cierra y devuelve el foco', async ({ page }) => {
+  await expect(page.locator('.card .card-value')).toHaveCount(5); // los pasos apuntan a elementos con datos
+  await page.evaluate(() => localStorage.removeItem('tutorial-seen'));
+
+  const button = page.getByRole('button', { name: '¿Cómo leer esto?' });
+  await button.click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveAttribute('aria-modal', 'true');
+  await expect(dialog).toBeFocused();
+
+  for (let i = 0; i < TUTORIAL_ANCHORS.length; i++) {
+    await expect(dialog).toContainText(`Paso ${i + 1} de 4`);
+    await expect.poll(() => boxOffset(page, TUTORIAL_ANCHORS[i])).toBeLessThanOrEqual(2);
+    if (i < TUTORIAL_ANCHORS.length - 1) await dialog.getByRole('button', { name: 'Siguiente' }).click();
+  }
+  await expect(dialog.getByRole('button', { name: 'Entendido' })).toBeVisible();
+
+  // Tab no se escapa del diálogo.
+  for (let i = 0; i < 4; i++) await page.keyboard.press('Tab');
+  expect(await dialog.evaluate((d) => d.contains(document.activeElement))).toBe(true);
+
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(button).toBeFocused();
+  expect(await page.evaluate(() => localStorage.getItem('tutorial-seen'))).toBe('1');
+});
+
+test('Tutorial · la primera vez se abre solo con la bienvenida; Empezar va al paso 1 y Saltar lo cierra', async ({ page }) => {
+  // Este init script corre después del de beforeEach y borra la marca solo en la primera recarga
+  // (las siguientes navegaciones también lo corren: sin la bandera, el tutorial nunca quedaría "visto").
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('tutorial-reset')) return;
+    sessionStorage.setItem('tutorial-reset', '1');
+    localStorage.removeItem('tutorial-seen');
+  });
+  await page.reload();
+  const dialog = page.getByRole('dialog', { name: '¡Hola! Soy Mati.' });
+  await expect(dialog).toBeVisible();
+  await expect(page.locator('.card .card-value')).toHaveCount(5);
+  await expect(page.getByTestId('tour-avatar')).toHaveAttribute('aria-hidden', 'true'); // el avatar es decorativo
+
+  await dialog.getByRole('button', { name: 'Empezar' }).click();
+  const steps = page.getByRole('dialog');
+  await expect(steps).toContainText('Paso 1 de 4');
+  await expect.poll(() => boxOffset(page, 'valor')).toBeLessThanOrEqual(2);
+  await steps.getByRole('button', { name: 'Saltar tutorial' }).click();
+  await expect(steps).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('tutorial-seen'))).toBe('1');
+
+  // Recargando ya no se abre solo.
+  await page.reload();
+  await expect(page.locator('.card .card-value')).toHaveCount(5);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});

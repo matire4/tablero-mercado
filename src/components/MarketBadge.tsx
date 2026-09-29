@@ -5,7 +5,7 @@ import { formatCierre, relativeTime } from '@/lib/format';
 export function MarketBadge({ market, fetchedAt, now }: { market: MarketStatus; fetchedAt: string; now: Date }) {
   if (market.isOpen) {
     return (
-      <div className="pill" role="status">
+      <div className="pill" role="status" data-tutorial="mercado">
         <span className="pill-dot" />
         <span style={{ fontWeight: 500 }}>Mercado abierto</span>
         <span className="muted">· datos de {relativeTime(fetchedAt, now)}</span>
@@ -13,7 +13,7 @@ export function MarketBadge({ market, fetchedAt, now }: { market: MarketStatus; 
     );
   }
   return (
-    <div className="pill" role="status">
+    <div className="pill" role="status" data-tutorial="mercado">
       <span className="pill-dot closed" />
       <span style={{ fontWeight: 500 }}>Mercado cerrado</span>
       <span className="muted">· último cierre {formatCierre(market.lastCloseAt)}</span>

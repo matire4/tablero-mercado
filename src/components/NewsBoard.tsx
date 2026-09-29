@@ -35,7 +35,7 @@ export function NewsBoard() {
 
   return (
     <section className="news glass" aria-labelledby="news-title">
-      <div className="news-head">
+      <div className="news-head" data-tutorial="noticias">
         <h2 id="news-title" className="news-title">Noticias</h2>
         <p className="news-sub secondary">
           Dólar, BCRA, Fed, inflación, riesgo país y mercados · pueden tener hasta 12 h de demora

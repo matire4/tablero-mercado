@@ -293,3 +293,87 @@ html[data-intro='open'] .page { animation: page-approach 800ms cubic-bezier(0.2,
 .news-state.error { border: 1px dashed var(--error-border); }
 .news-state.error b { color: var(--fg); font-weight: 500; }
 .news-state.empty { border: 1px solid var(--line); }
+
+/* Tutorial de 4 pasos con avatar (Tutorial.tsx). Un recuadro sobre el elemento real de cada paso oscurece el resto
+   con su sombra; al lado va la tarjeta: Mati (clips sin fondo del video de su Memoji, decorativo) y un globo de
+   cómic con el texto y los botones. El movimiento es el de los clips (saluda, parpadea, guiña); el globo solo entra
+   con un "pop" leve. Escritorio: Mati al costado del globo, con la base fundida, y la tarjeta viaja a cada elemento.
+   Celular: Mati asoma desde el borde de abajo de la pantalla y el globo va arriba, a lo ancho.
+   La posición la escribe Tutorial.tsx; la capa no captura clics: solo el globo. */
+:root { --tour-dim: rgba(31, 27, 26, 0.42); }
+:root[data-theme='dark'] { --tour-dim: rgba(0, 0, 0, 0.6); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { --tour-dim: rgba(0, 0, 0, 0.6); } }
+
+.help-btn { font-weight: 500; white-space: nowrap; color: var(--fg); }
+.help-btn:focus-visible, .tour-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tour-panel:focus { outline: none; } /* el foco entra al globo al abrir; el anillo se confundía con el recuadro */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+.tour-layer { position: fixed; inset: 0; z-index: 90; pointer-events: none; }
+.tour-layer[data-anchor='none'] { background: var(--tour-dim); }
+/* El recuadro mide exactamente lo que el elemento; el anillo va 4 px afuera (outline) para no pisar el texto. */
+.tour-box { position: fixed; top: 0; left: 0; width: 0; height: 0; outline: 2px solid var(--accent); outline-offset: 4px; box-shadow: 0 0 0 9999px var(--tour-dim); visibility: hidden; }
+.tour-layer[data-anchor='ok'] .tour-box { visibility: visible; }
+.tour-box.gap { outline-color: var(--gap-line); }
+
+/* Tarjeta = Mati + globo. Celular: pegada abajo, con lugar para Mati debajo del globo. */
+.tour-card { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 12px 118px; }
+
+.tour-av { position: absolute; left: 4px; bottom: 0; width: 168px; height: 126px; pointer-events: none; }
+.tour-av:not([data-ready]) { visibility: hidden; } /* hasta que cargue la imagen */
+.tour-av-img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: left bottom; user-select: none; }
+
+/* Globo de cómic: crema con contorno oscuro en los dos temas (el contorno lo dibujan las sombras, así rodea también
+   la colita). Adentro se fijan los colores del tema claro para que el texto y los botones se lean sobre crema. */
+.tour-panel {
+  --fg: #1f1b1a; --fg-2: #5f5754; --fg-3: #7a716d; --glass-border: rgba(31, 27, 26, 0.22);
+  --accent: #e8654f; --accent-soft: rgba(232, 101, 79, 0.16); --accent-text: #a63e2b;
+  position: relative; z-index: 1; pointer-events: auto;
+  display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 22px;
+  background: #fffaf3; color: var(--fg);
+  filter: drop-shadow(2px 0 0 #1f1b1a) drop-shadow(-2px 0 0 #1f1b1a) drop-shadow(0 2px 0 #1f1b1a) drop-shadow(0 -2px 0 #1f1b1a) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28));
+}
+/* Colita: en celular sale de abajo a la izquierda, hacia la cabeza de Mati. */
+.tour-panel::after { content: ''; position: absolute; left: 70px; bottom: -17px; width: 28px; height: 18px; background: inherit; clip-path: polygon(0 0, 100% 0, 18% 100%); }
+.tour-head { margin: 0; font-size: 12px; color: var(--fg-3); }
+.tour-bubble { margin: 0; font-size: 15px; line-height: 1.45; color: var(--fg); }
+.tour-text { margin: 6px 0 0; font-size: 15px; line-height: 1.45; color: var(--fg); }
+.tour-hello { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--fg); }
+.tour-note { margin: 0; font-size: 12px; color: var(--fg-3); }
+.tour-actions { display: flex; gap: 8px; align-items: center; padding-top: 10px; border-top: 1px dashed var(--glass-border); }
+.tour-actions .ghost { margin-right: auto; }
+.tour-actions.welcome .tour-btn { flex: 1; padding: 10px 14px; }
+.tour-btn { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--glass-border); background: transparent; color: var(--fg); font-size: 13px; }
+.tour-btn.ghost { border-color: transparent; color: var(--fg-2); padding-left: 4px; }
+.tour-btn.primary { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.tour-btn:disabled { opacity: 0.4; cursor: default; }
+.tour-layer[data-welcome] .tour-av { width: 184px; height: 138px; }
+.tour-layer[data-welcome] .tour-card { padding-bottom: 128px; }
+
+@media (min-width: 900px) {
+  .tour-card { right: auto; left: 50%; bottom: 24px; padding: 0; transform: translateX(-50%); display: flex; align-items: center; gap: 18px; }
+  .tour-card[data-place='anchor'] { bottom: auto; transform: none; }
+
+  /* Mati al costado del globo; la base de la imagen se funde para que no se vea el corte. */
+  .tour-av { position: relative; left: auto; bottom: auto; flex: none; width: 216px; height: 162px;
+    -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); }
+  .tour-av-img { object-position: center bottom; }
+  .tour-layer[data-welcome] .tour-av { width: 288px; height: 216px; }
+
+  .tour-panel { width: 360px; }
+  .tour-layer[data-welcome] .tour-panel { width: 340px; padding: 18px 20px; }
+  /* Colita: sale del costado izquierdo, hacia la boca de Mati. */
+  .tour-panel::after { left: -20px; top: 38px; bottom: auto; width: 22px; height: 26px; clip-path: polygon(100% 0, 100% 100%, 0 30%); }
+}
+
+/* Movimiento solo si el usuario no pidió reducirlo (sin JS). El shorthand de animation siempre con nombre. */
+@media (prefers-reduced-motion: no-preference) {
+  .tour-box[data-moving] { transition: top 450ms cubic-bezier(0.4, 0, 0.2, 1), left 450ms cubic-bezier(0.4, 0, 0.2, 1), width 450ms ease, height 450ms ease, border-radius 450ms ease; }
+  .tour-card[data-moving] { transition: top 450ms cubic-bezier(0.4, 0, 0.2, 1), left 450ms cubic-bezier(0.4, 0, 0.2, 1); }
+  .tour-av[data-ready] { animation: tour-fade 200ms ease-out both; }
+  .tour-panel { animation: tour-pop 240ms cubic-bezier(0.2, 0.9, 0.3, 1.15) both; transform-origin: 20% 100%; }
+  .tour-bubble { animation: tour-fade 220ms ease-out both; }
+}
+@media (prefers-reduced-motion: no-preference) and (min-width: 900px) { .tour-panel { transform-origin: 0% 20%; } }
+@keyframes tour-pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
+@keyframes tour-fade { from { opacity: 0; } to { opacity: 1; } }

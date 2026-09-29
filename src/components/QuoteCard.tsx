@@ -56,8 +56,11 @@ export function QuoteCard({ asset, result, market, now, index }: Props) {
       ? `último cierre ${formatCierre(market.lastCloseAt)}`
       : relativeTime(q.updatedAt, now);
 
+  // Anclas del tutorial (Tutorial.tsx): solo la tarjeta Blue con dato.
+  const isBlue = asset === 'blue';
+
   return (
-    <div className="card glass" style={style}>
+    <div className="card glass" style={style} data-tutorial={isBlue ? 'valor' : undefined}>
       <div className="card-head"><b>{LABELS[asset]}</b><span>{SOURCES[asset]}</span></div>
       <div className="card-value">
         {isRiesgo ? <>{formatNumber(q.sell)} <small>pts</small></> : formatArs(q.sell)}
@@ -70,8 +73,8 @@ export function QuoteCard({ asset, result, market, now, index }: Props) {
       {isRiesgo && <span className="chip neutral">Sin brecha</span>}
       {!isRiesgo && asset !== 'oficial' && (
         q.gapVsOficial === null
-          ? <span className="chip neutral">Brecha no disponible</span>
-          : <span className="chip">Brecha {formatPct(q.gapVsOficial)}</span>
+          ? <span className="chip neutral" data-tutorial={isBlue ? 'brecha' : undefined}>Brecha no disponible</span>
+          : <span className="chip" data-tutorial={isBlue ? 'brecha' : undefined}>Brecha {formatPct(q.gapVsOficial)}</span>
       )}
       <div className="card-time">{timeText}</div>
     </div>

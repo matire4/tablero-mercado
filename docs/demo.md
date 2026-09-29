@@ -10,4 +10,5 @@ El guion con minutos y el apéndice técnico se escriben en la fase de demo. Mie
 - **Lista de noticias completa, sin "ver más"** (29/09). En celular son hasta ~20 notas seguidas. Se evaluó mostrar 8 con un botón "ver más" y se descartó: Mati la ve bien así y no suma alcance.
 - **Brecha en panel propio, no superpuesta** (desvío de H1-2 aprobado el 29/09). Dos ejes Y en un mismo gráfico hacen comparar líneas de unidades distintas. Buen ejemplo de "el Tech Lead avisó antes de desviarse".
 - **Sin librería de gráficos.** Recharts traía Redux Toolkit y 10 dependencias más para dos líneas.
+- **Avatar del tutorial = el Memoji de Mati** (29/09). Le da entidad al producto en la demo, pero en un banco no iría la cara del desarrollador: son tres clips cortos, decorativos (`aria-hidden`), y el banco los reemplaza por su mascota o los saca sin tocar la lógica del tutorial. Tenerlo listo si preguntan "¿esto va a producción así?".
 - **Plan B:** `USE_MOCK_DATA=true` con banner obligatorio de "Datos de demostración".

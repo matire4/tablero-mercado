@@ -120,3 +120,79 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 **Cómo lo detecté:** Mati, abriendo la tabla en el navegador.
 **Qué hice:** abierta ocupa el ancho debajo de la leyenda (máximo 520 px, centrada; primero quedó alineada a la derecha y en escritorio se veía desbalanceada), con altura máxima, scroll propio, encabezado fijo y fechas DD/MM/AAAA. Verificado en escritorio y celular.
 
+
+## 2026-09-29 · Tech Lead (entrada "puertas")
+**Qué propuso:** el shorthand `animation: 800ms ease …` sin nombre de animación en las reglas de las puertas.
+**Por qué estaba mal:** el compilador de CSS de Next (Lightning CSS) reduce un shorthand sin nombre a `animation: none`: las puertas no se movían.
+**Cómo lo detecté:** midiendo `getComputedStyle(html, '::after').transform` durante la animación, no a ojo.
+**Qué hice:** el shorthand lleva siempre el nombre en cada regla; quedó comentado en globals.css.
+
+## 2026-09-29 · Tech Lead (entrada "puertas")
+**Qué propuso:** detectar el fin de la animación con `getAnimations()`.
+**Por qué estaba mal:** Chromium no lista en `getAnimations()` las animaciones de pseudoelementos de `<html>`; los eventos `animationend` sí llegan.
+**Qué hice:** se volvió a `animationend` + timeout, y después a un timeout de apertura, porque la apertura la dispara el propio componente (DoorsIntro.tsx).
+
+## 2026-09-29 · Tech Lead (entrada "puertas")
+**Qué propuso:** el color del telón, en tres vueltas: primero del color del fondo, después invertido.
+**Por qué estaba mal:** del color del fondo no se veía; invertido quedaba crema sobre el modo oscuro.
+**Cómo lo detecté:** la versión invertida la vio Mati.
+**Qué hice:** el telón sigue al tema y se distingue por las manchas, el título y el brillo de la unión.
+
+## 2026-09-29 · Tech Lead (entrada "puertas")
+**Qué propuso:** mantener la duración de 0,8 s cerrada el 28/09.
+**Por qué estaba mal:** a 0,8 s no se percibía. Mati pidió 5 s; para un usuario "de un vistazo" es una espera.
+**Qué hice:** se acordó ~2,4 s con acercamiento (1,4 s) y apertura (0,8 s). Anotado en CLAUDE.md.
+
+## 2026-09-29 · Tech Lead (entrada "puertas")
+**Qué se pidió:** Mati pidió un porcentaje de carga sobre el telón.
+**Por qué lo cuestioné:** sería inventado: la duración es fija y el fetch corre en paralelo, no hay nada real que medir.
+**Qué hice:** nombre del producto + "Cargando cotizaciones y noticias…" con una línea que se subraya.
+
+## 2026-09-29 · Tech Lead (entrada "puertas")
+**Qué se pidió:** Mati pidió que el telón no se abra con las tarjetas en "Cargando…".
+**Qué hice:** el telón espera a que no quede ningún `aria-busy="true"` en la página, con tope de 6 s. Probado con API rápida, con 3 s de demora simulada y colgada.
+
+## 2026-09-29 · Tech Lead (entrada "puertas")
+**Qué propuso:** correr comandos de git de solo lectura (`git status`, `git diff`) desde el shell de la carpeta conectada.
+**Por qué estaba mal:** ese shell no tiene permiso de borrado: git dejó un `.git/index.lock` huérfano que bloqueó el commit de Mati.
+**Cómo lo detecté:** el commit de Mati falló por el lock.
+**Qué hice:** se borró a mano. Regla: nada de git desde la carpeta conectada; diffs y estado, en un clon.
+
+## 2026-09-29 · Tech Lead (tutorial)
+**Qué se pidió:** Mati pidió que el tutorial sea "una personita que explique qué se ve en cada sección", como la de su portafolio.
+**Por qué lo cuestioné:** es alcance nuevo, fuera de las 3–4 h del alcance de diseño, con 1–1,5 h de presupuesto para el tutorial. Además no pude ver la referencia: en el portafolio es un canvas ("Retrato · 2026") que apareció vacío en el navegador y la pestaña se trabó; no la reconstruí de suposiciones.
+**Qué hice:** opciones con trade-offs; Mati eligió tutorial base primero y la personita después, como capa decorativa aparte (SVG propio, `aria-hidden`) sin tocar la lógica, y solo si entra en horas. Manda captura o GIF de referencia. Anotado en CLAUDE.md antes de implementar.
+
+## 2026-09-29 · Tech Lead (tutorial)
+**Qué propuso:** el recuadro del tutorial con un borde de 2 px dibujado sobre el borde del elemento, y el anillo de foco del panel en color de acento.
+**Por qué estaba mal:** el borde pisaba el texto del encabezado de noticias y del chip de brecha (que no tienen margen propio), y el anillo de foco del panel se leía como un segundo resaltado.
+**Cómo lo detecté:** capturas de los 4 pasos en escritorio y celular, tema claro y oscuro, antes de pasarlo.
+**Qué hice:** el recuadro mide exactamente lo que el elemento (el test lo compara a ±2 px) y el anillo va 4 px afuera con `outline-offset`; sin anillo en el panel (el foco sigue entrando al abrir).
+
+## 2026-09-29 · Tech Lead (tutorial)
+**Qué propuso:** texto del paso 4 "No se ordenan por impacto", sin decir cómo se ordenan.
+**Por qué importa:** dejaba la duda al usuario. Verificado en el código (`providers/news.ts`): se ordenan por fecha, de la más nueva a la más vieja.
+**Qué hice:** "Van de la más nueva a la más vieja; no se ordenan por impacto."
+
+## 2026-09-29 · Tech Lead (avatar del tutorial)
+**Qué propuso:** en escritorio, el busto del avatar asomando por encima del panel, con el corte de la imagen tapado por el borde del panel (así quedó escrito en CLAUDE.md antes de implementar).
+**Por qué cambió:** el panel va pegado al elemento resaltado (debajo o arriba); una cabeza asomando por encima del panel tapaba justo el elemento que se explica.
+**Cómo lo detecté:** al implementar la ubicación del panel, antes de mostrárselo a Mati.
+**Qué hice:** el busto va al costado izquierdo del panel y la base se funde con una máscara, así no se ve el corte. Corregido en CLAUDE.md.
+
+## 2026-09-29 · Claude Design (poses del avatar)
+**Qué se pidió:** dos cuadros más del video del Memoji, con la boca abierta "hablando" y el mismo encuadre que la pose neutral, para animar el habla.
+**Qué hizo bien:** revisó el video cuadro por cuadro y no los inventó: los únicos cuadros con la boca abierta son sonrisas, y en ellos también se mueven cejas, cachetes y cabeza (diferencia con la pose neutral 5 a 7 veces mayor que entre dos cuadros quietos). Alternarlos habría parecido muecas.
+**Qué hice:** Mati eligió un vaivén leve mientras aparece el texto. El código acepta cuadros de boca si más adelante salen de un video nuevo, con la pose neutral del mismo video.
+
+## 2026-09-29 · Tech Lead (avatar del tutorial)
+**Qué propuso:** en el test de apertura automática, borrar la marca `tutorial-seen` con `page.addInitScript` y después verificar que al recargar ya no se abre solo.
+**Por qué estaba mal:** el init script corre en cada navegación: al recargar volvía a borrar la marca y el tutorial se abría de nuevo. El test fallaba por el test, no por la app.
+**Cómo lo detecté:** falló en escritorio y celular con el diálogo todavía visible después de recargar.
+**Qué hice:** el init script borra la marca una sola vez (bandera en `sessionStorage`). 15 e2e en verde.
+
+## 2026-09-29 · Tech Lead (avatar del tutorial)
+**Qué propuso:** animar el avatar con poses fijas (PNG) y movimiento por CSS: subir saludando con balanceo, inclinarse hacia el elemento, "hablar" con un vaivén y un saltito al cambiar de paso.
+**Por qué estaba mal:** una imagen quieta que se balancea no parece una persona: Mati lo describió como "mover una hoja de papel de derecha a izquierda; el avatar no interactuaba". Las capturas de verificación eran cuadros sueltos y no mostraban ese efecto; recién se vio en la grabación.
+**Cómo lo detecté:** Mati, mirando la grabación de escritorio.
+**Qué hice:** se sacó todo el movimiento de imagen fija. El avatar pasó a ser video: 3 clips del video del Memoji del portafolio de Mati (saludo, reposo en bucle, guiño), con su fondo, en WebM + MP4. Antes se evaluó generar videos nuevos con Gemini (pedía plan pago) y Kling (sin cuenta a mano; no se crean cuentas ni se entra con contraseñas desde el asistente). Aprendizaje: para validar animaciones, mostrar un video, no capturas.

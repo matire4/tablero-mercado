@@ -100,7 +100,10 @@ Tres reglas que ordenan todo:
 │       ├── HistoryChart.tsx      SVG propio: precio + panel de brecha, selector 7/30/90, tabla accesible
 │       ├── NewsBoard.tsx         una carga al montar; carga / error / sin datos / parcial; idioma y tema por nota
 │       ├── MarketBadge.tsx       "Actualizado hace X min" o "Último cierre: día y hora"
-│       └── ThemeToggle.tsx       tema claro / oscuro
+│       ├── ThemeToggle.tsx       tema claro / oscuro
+│       ├── DoorsIntro.tsx        entrada "puertas": decide cuándo abrir el telón (CSS sobre html[data-intro])
+│       └── Tutorial.tsx          botón "¿Cómo leer esto?" + tutorial de 4 pasos con avatar animado y globo de cómic; anclas data-tutorial
+├── public/avatar/                clips del avatar del tutorial sin fondo (saludo, reposo, guiño: WebP animado 360×270, ~1 MB, + primer cuadro fijo de cada uno); se reemplazan sin tocar código
 └── tests/
     ├── unit/                     Vitest: business-days, change, market-status, brecha, adaptadores con MSW
     └── e2e/                      Playwright en modo mock, escritorio y celular: tarjetas, brecha, gráfico, noticias, proveedor caído, responsive

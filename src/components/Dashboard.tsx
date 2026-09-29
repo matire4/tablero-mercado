@@ -7,6 +7,7 @@ import { HistoryChart } from './HistoryChart';
 import { NewsBoard } from './NewsBoard';
 import { QuoteCard } from './QuoteCard';
 import { ThemeToggle } from './ThemeToggle';
+import { Tutorial } from './Tutorial';
 
 const ASSETS: AssetId[] = ['blue', 'mep', 'oficial', 'tarjeta', 'riesgo-pais'];
 const REFRESH_MS = 60_000; // alineado con la cache del server
@@ -54,6 +55,7 @@ export function Dashboard() {
         </div>
         <div className="header-actions">
           {data && <MarketBadge market={data.market} fetchedAt={data.fetchedAt} now={clock} />}
+          <Tutorial ready={data !== null} />
           <ThemeToggle />
         </div>
       </header>
