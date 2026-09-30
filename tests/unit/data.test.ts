@@ -1,5 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { http, HttpResponse } from 'msw';
+import { setupServer } from 'msw/node';
 import { configFromEnv, getHistory, getNews, getQuotes, type DataConfig } from '../../src/lib/data';
+import { ARGDATOS_BASE, historicoUrl } from '../../src/lib/providers/argentinadatos';
+import feriadosRaw from '../../src/lib/fixtures/raw/argdatos-feriados.json';
+import historyOficial from '../../src/lib/fixtures/history-oficial.json';
 
 const mock = (scenario: DataConfig['scenario']): DataConfig => ({ mock: true, scenario, newsApiKey: undefined });
 const env = (vars: Record<string, string>) => vars as unknown as NodeJS.ProcessEnv;
@@ -64,6 +69,35 @@ describe('getHistory en modo mock', () => {
   it('rango 7 en viernes-cerrado recorta con la fecha del fixture', async () => {
     const r = await getHistory('mep', 7, mock('viernes-cerrado'));
     expect(r.ok && r.data.series[r.data.series.length - 1].date).toBe('2026-09-25');
+  });
+});
+
+describe('getHistory en modo real con MSW (H0-6)', () => {
+  const real: DataConfig = { mock: false, scenario: 'normal', newsApiKey: undefined };
+  const server = setupServer();
+  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+  afterEach(() => server.resetHandlers());
+  afterAll(() => server.close());
+
+  // getHistory('blue') pide también el oficial (brecha) y los feriados (estado de mercado): esas dos responden bien.
+  const conBlue = (blue: () => Response) =>
+    server.use(
+      http.get(historicoUrl('blue'), blue),
+      http.get(historicoUrl('oficial'), () => HttpResponse.json(historyOficial)),
+      http.get(`${ARGDATOS_BASE}/feriados/:year`, () => HttpResponse.json(feriadosRaw)),
+    );
+
+  it('ArgentinaDatos devuelve [] → ok con serie vacía y sin brecha ("sin datos", no error)', async () => {
+    conBlue(() => HttpResponse.json([]));
+    const r = await getHistory('blue', 30, real);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.data.series).toEqual([]);
+    expect(r.data.gapSeries).toBeNull(); // aunque el oficial tenga datos
+  });
+  it('ArgentinaDatos devuelve 500 → sigue siendo error', async () => {
+    conBlue(() => new HttpResponse(null, { status: 500 }));
+    expect(await getHistory('blue', 30, real)).toMatchObject({ ok: false, error: { kind: 'upstream' } });
   });
 });
 

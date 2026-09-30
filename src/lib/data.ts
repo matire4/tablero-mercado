@@ -135,12 +135,17 @@ export async function getHistory(asset: AssetId, range: 7 | 30 | 90, cfg: DataCo
     loadHistorico(cfg, asset),
     needsOficial ? loadHistorico(cfg, 'oficial') : Promise.resolve(fail<HistoryPoint[]>('empty', 'no aplica')),
   ]);
-  if (!serie.ok) return serie;
+  const market = getMarketStatus(now, holidays, source);
+  // Serie vacía del proveedor = "sin datos para este período" (H0-6), no error. Los demás errores siguen siendo error.
+  // fetchJson no cambia: para cotizaciones, vacío sigue siendo error (H0-5).
+  if (!serie.ok) {
+    return serie.error.kind === 'empty' ? ok({ asset, range, series: [], gapSeries: null, market }) : serie;
+  }
 
   const series = recorte(serie.data);
   const gapSeries = needsOficial && oficial.ok ? brechaSeries(series, recorte(oficial.data)) : null;
 
-  return ok({ asset, range, series, gapSeries, market: getMarketStatus(now, holidays, source) });
+  return ok({ asset, range, series, gapSeries, market });
 }
 
 export type { NewsResponse };

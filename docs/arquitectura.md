@@ -218,10 +218,12 @@ Los tres devuelven **siempre HTTP 200 con el `Result` en el body**. El error de 
 | Endpoint | Devuelve | Sin datos | Error | Cache-Control |
 |---|---|---|---|---|
 | `GET /api/quotes` | `QuotesResponse` | `ok` con datos parciales | por activo | `s-maxage=60, stale-while-revalidate=300` si todos `ok`; `no-store` si alguno falló |
-| `GET /api/history/[asset]?range=7\|30\|90` | `Result<HistoryResponse>` | `ok: true, series: []` | `ok: false` | `s-maxage=3600` |
+| `GET /api/history/[asset]?range=7\|30\|90` | `Result<HistoryResponse>` | `ok: true, series: []` | `ok: false` | `s-maxage=3600, stale-while-revalidate=3600` si `ok` (también sin datos); `no-store` si error |
 | `GET /api/news` | `Result<{ items: NewsItem[]; fetchedAt }>` | `ok: true, items: []` | `ok: false` | `s-maxage=2700` |
 
 "Sin datos" y "error" son valores distintos a propósito: son dos de los cuatro estados de UI que el producto exige visibles y distintos (H0-6).
+
+**Histórico vacío (arreglado el 30/09, hallazgo #1 de QA en `testing.md` §6).** `fetch-json` convierte un `[]` del proveedor en `empty`, y `getHistory` lo devolvía como error: el gráfico mostraba "No pudimos obtener el histórico" en vez de "Sin datos para este período". Ahora `getHistory` traduce `empty` de la serie del activo a `ok` con `series: []` y `gapSeries: null`; los demás errores siguen siendo error. `fetch-json` no cambia, porque para cotizaciones "vacío" sigue siendo error (H0-5). Efecto en cache, aceptado: la respuesta sin datos ahora sale con `s-maxage=3600` en vez de `no-store` (el `Cache-Control` no se tocó; cambia porque ahora es `ok`). En frescura casi no cambia nada: la Data Cache de Next ya guardaba ese `[]` 24 h, porque el proveedor lo devuelve con HTTP 200.
 
 **Histórico:** el server pide la serie completa **una vez por día** (revalidación 24 h sobre el `fetch` al proveedor), la recorta por fecha a los últimos 90 días calendario y recién eso sale al cliente; `range` recorta sobre esos 90. Se descartó recortar por cantidad de registros (31): las dos series tienen calendarios distintos (calendario completo vs. solo hábiles), así que "31 registros" no significa lo mismo en cada una, y no cubría el selector de 90 días.
 
