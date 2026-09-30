@@ -1,0 +1,28 @@
+Evidencia: cache del CDN de Vercel sobre /api/news
+Fecha: 30/09/2026, ~15:14 UTC (12:14 hora Argentina)
+Ejecutado por: Mati, desde su Mac, contra la URL pública
+
+Comando (dos GET seguidos, sin API key, no gasta cuota de GNews):
+
+  for i in 1 2; do curl -s -D - -o /tmp/news$i.json https://tablero-mercado.vercel.app/api/news | grep -iE "x-vercel-cache|age:"; python3 -c "import json;print(json.load(open('/tmp/news$i.json'))['data']['fetchedAt'])"; done
+
+Salida:
+
+  age: 566
+  x-vercel-cache: HIT
+  2026-09-30T15:05:09.843Z
+  age: 567
+  x-vercel-cache: HIT
+  2026-09-30T15:05:09.843Z
+
+Lectura:
+- Las dos respuestas salen del CDN (HIT) con el mismo fetchedAt: el server armó la lista a las 15:05:09Z
+  y durante ~9,5 min nadie volvió a llamar a GNews.
+- Coincide con el dashboard de GNews (2 requests en la hora 15:00 UTC: búsqueda es + en) y con los Runtime
+  Logs de Vercel: una sola ejecución de función a las 12:05 ART; las GET de las 12:14 se sirvieron desde cache.
+- Verifica el Cache-Control del route handler (s-maxage=2700, 45 min) cuando las dos búsquedas salen bien.
+
+Notas de método:
+- `curl -I` (HEAD) no sirve para esta prueba: Vercel cachea HEAD aparte y además no reenvía s-maxage al cliente
+  (el header visible es solo "cache-control: public").
+- Relacionado: docs/evidencia/gnews-dashboard-horas-30-09.png, gnews-dashboard-dias-30-09.png, vercel-logs-news-30-09.png
