@@ -52,10 +52,20 @@ export interface HistoryResponse {
   market: MarketStatus;
 }
 
-/** Respuesta de /api/news. `sources.ok < sources.total` = alguna búsqueda falló y la lista puede estar incompleta. */
+/**
+ * Resultado de las búsquedas de noticias. `ok < total` = alguna falló y la lista puede estar incompleta.
+ * `failed` dice cuál y de qué tipo (sin el mensaje), para diagnosticar con un curl a /api/news (BUG-01).
+ */
+export interface NewsSources {
+  ok: number;
+  total: number;
+  failed: Array<{ lang: 'es' | 'en'; kind: ErrorKind }>;
+}
+
+/** Respuesta de /api/news. */
 export interface NewsResponse {
   items: NewsItem[];
-  sources: { ok: number; total: number };
+  sources: NewsSources;
   fetchedAt: string;
   mock: boolean;
 }

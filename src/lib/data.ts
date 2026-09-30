@@ -157,7 +157,10 @@ export type { NewsResponse };
  */
 export async function getNews(cfg: DataConfig = configFromEnv()): Promise<Result<NewsResponse>> {
   if (cfg.mock) {
-    const res = mergeNews([normalizeNews(newsFixture.es, 'es'), normalizeNews(newsFixture.en, 'en')]);
+    const res = mergeNews([
+      { lang: 'es', res: normalizeNews(newsFixture.es, 'es') },
+      { lang: 'en', res: normalizeNews(newsFixture.en, 'en') },
+    ]);
     return res.ok ? ok({ ...res.data, fetchedAt: newsFixture.now, mock: true }) : res;
   }
   const res = await fetchNews(cfg.newsApiKey);

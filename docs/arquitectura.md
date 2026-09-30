@@ -219,7 +219,7 @@ Los tres devuelven **siempre HTTP 200 con el `Result` en el body**. El error de 
 |---|---|---|---|---|
 | `GET /api/quotes` | `QuotesResponse` | `ok` con datos parciales | por activo | `s-maxage=60, stale-while-revalidate=300` si todos `ok`; `no-store` si alguno falló |
 | `GET /api/history/[asset]?range=7\|30\|90` | `Result<HistoryResponse>` | `ok: true, series: []` | `ok: false` | `s-maxage=3600, stale-while-revalidate=3600` si `ok` (también sin datos); `no-store` si error |
-| `GET /api/news` | `Result<{ items: NewsItem[]; fetchedAt }>` | `ok: true, items: []` | `ok: false` | `s-maxage=2700` |
+| `GET /api/news` | `Result<{ items: NewsItem[]; sources: { ok, total, failed: [{ lang, kind }] }; fetchedAt; mock }>` | `ok: true, items: []` | `ok: false` (fallaron las dos búsquedas) | `s-maxage=2700, stale-while-revalidate=2700` si están las dos; `no-store` si falló alguna |
 
 "Sin datos" y "error" son valores distintos a propósito: son dos de los cuatro estados de UI que el producto exige visibles y distintos (H0-6).
 
@@ -312,7 +312,9 @@ Opciones descartadas: solo español con 20 min (72/día; pierde las noticias en 
 
 **Por qué no un segundo proveedor para repartir la cuota.** Sumar otra API de noticias resuelve el límite pero duplica el costo de mantenimiento: dos adaptadores, dos formatos de respuesta, dos límites de uso, dos claves, dos fuentes de error, y notas duplicadas entre fuentes que habría que deduplicar. El límite de 100/día es un problema de plan, no de arquitectura: si el producto avanza, se paga el plan de GNews (que además elimina la demora de 12 h) y el código no cambia. Preferimos un proveedor bien manejado a dos a medias.
 
-Las dos búsquedas se hacen **en secuencia con 1 s de pausa**, no en paralelo: en la primera prueba real, dos requests simultáneas con la misma key dieron un 429 (ver `ai-log.md`). Si una búsqueda falla, la respuesta lleva `sources: { ok, total }` y el route handler no deja que el CDN la cachee.
+Las dos búsquedas se hacen **en secuencia con 1 s de pausa**, no en paralelo: en la primera prueba real, dos requests simultáneas con la misma key dieron un 429 (ver `ai-log.md`). Si una búsqueda falla, la respuesta lleva `sources: { ok, total, failed }` y el route handler no deja que el CDN la cachee.
+
+**Rastro de fallas (30/09, BUG-01 en `bug-report.md`).** El 29/09 la búsqueda en inglés falló en producción y no se pudo saber por qué: la respuesta no decía cuál búsqueda había fallado y el código no escribía nada en los logs. Ahora, cada búsqueda que falla escribe **una línea** con `console.error` (`[news] búsqueda en en falló: rate-limited · HTTP 429: …`): idioma, tipo y mensaje, nunca la URL, que lleva la API key (`redactKey` tapa `apikey=…` por si algún mensaje la trajera). Además `sources.failed: [{ lang, kind }]`, sin el mensaje, deja diagnosticar con un `curl` a `/api/news` sin depender de los logs de Vercel, que en el plan Hobby duran poco. En modo mock `failed` va vacío. La UI no cambia.
 
 **Filtro por temas fijos (decisión del 28/09).** La primera respuesta real en producción trajo notas de política y cultura etiquetadas como `mercados`, porque ese tema era el comodín para lo que no matcheaba nada. Ahora una nota que no matchea ningún tema fijo **se descarta**, y `mercados` requiere palabras explícitas (Merval, bolsa, acciones, bonos, Wall Street, FMI, mercados). Resultado: menos notas, todas dentro de lo que el producto promete. Detalle y riesgo residual en `docs/riesgos.md`.
 

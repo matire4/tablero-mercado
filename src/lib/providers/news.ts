@@ -3,7 +3,7 @@
 
 import { fetchJson } from '../fetch-json';
 import { fail, ok } from '../result';
-import type { NewsItem, NewsTopic, Result } from '../types';
+import type { NewsItem, NewsSources, NewsTopic, Result } from '../types';
 
 export const GNEWS_URL = 'https://gnews.io/api/v4/search';
 export const GNEWS_REVALIDATE = 2700; // 45 min
@@ -110,35 +110,52 @@ export function dedupeByTitle(items: NewsItem[]): NewsItem[] {
 
 export interface NewsResult {
   items: NewsItem[];
-  /** Cuántas búsquedas salieron bien. Si ok < total, la lista está incompleta y el route handler no la deja cachear. */
-  sources: { ok: number; total: number };
+  /** Si ok < total, la lista está incompleta y el route handler no la deja cachear. `failed`: qué búsqueda y de qué tipo. */
+  sources: NewsSources;
 }
+
+/** Resultado de una búsqueda, con su idioma para poder decir cuál falló. */
+export interface SearchResult {
+  lang: 'es' | 'en';
+  res: Result<NewsItem[]>;
+}
+
+/** Tapa la API key si un mensaje de error llegara a traer la URL (p. ej. un error de Node al armar la request). */
+export const redactKey = (text: string) => text.replace(/apikey=[^&\s]*/gi, 'apikey=***');
 
 /** Espera entre búsquedas. GNews plan gratis devolvió 429 a requests simultáneas (28/09). */
 export const GNEWS_DELAY_MS = 1000;
 
 /**
  * Corre las búsquedas fijas EN SECUENCIA, con una pausa entre ellas, y mezcla los resultados por fecha descendente.
- * Falla solo si fallan todas; si falla alguna, `sources.ok < sources.total`.
+ * Falla solo si fallan todas; si falla alguna, `sources.ok < sources.total` y queda en `sources.failed`.
+ * Cada búsqueda que falla escribe UNA línea con console.error (idioma, tipo y mensaje; nunca la URL: lleva la API key).
  */
 export async function fetchNews(apiKey: string | undefined, delayMs = GNEWS_DELAY_MS): Promise<Result<NewsResult>> {
   if (!apiKey) return fail('upstream', 'Falta NEWS_API_KEY en el server');
-  const results: Result<NewsItem[]>[] = [];
+  const results: SearchResult[] = [];
   for (const [i, s] of SEARCHES.entries()) {
     if (i > 0 && delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
-    const res = await fetchJson<unknown>(buildUrl(s, apiKey), { revalidate: GNEWS_REVALIDATE });
-    results.push(res.ok ? normalizeNews(res.data, s.lang) : res);
+    const raw = await fetchJson<unknown>(buildUrl(s, apiKey), { revalidate: GNEWS_REVALIDATE });
+    const res = raw.ok ? normalizeNews(raw.data, s.lang) : raw;
+    if (!res.ok) console.error(`[news] búsqueda en ${s.lang} falló: ${res.error.kind} · ${redactKey(res.error.message)}`);
+    results.push({ lang: s.lang, res });
   }
   return mergeNews(results);
 }
 
 /**
  * Junta los resultados de cada búsqueda: ordena por fecha descendente y saca repetidas.
- * Falla solo si fallan todas (devuelve el primer error). La usa también el modo mock.
+ * Falla solo si fallan todas (devuelve el primer error). La usa también el modo mock (ahí `failed` va vacío).
  */
-export function mergeNews(results: Result<NewsItem[]>[]): Result<NewsResult> {
-  const okOnes = results.filter((r): r is Extract<Result<NewsItem[]>, { ok: true }> => r.ok);
-  if (okOnes.length === 0) return results[0] as Result<never>;
-  const items = dedupeByTitle(okOnes.flatMap((r) => r.data).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)));
-  return ok({ items, sources: { ok: okOnes.length, total: results.length } });
+export function mergeNews(results: SearchResult[]): Result<NewsResult> {
+  const okOnes: NewsItem[][] = [];
+  const failed: NewsSources['failed'] = [];
+  for (const { lang, res } of results) {
+    if (res.ok) okOnes.push(res.data);
+    else failed.push({ lang, kind: res.error.kind });
+  }
+  if (okOnes.length === 0) return results[0].res as Result<never>;
+  const items = dedupeByTitle(okOnes.flat().sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)));
+  return ok({ items, sources: { ok: okOnes.length, total: results.length, failed } });
 }

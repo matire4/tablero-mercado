@@ -1,9 +1,9 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { normalizeDolares } from '../../src/lib/providers/dolarapi';
 import { normalizeFeriados, normalizeHistorico, normalizeRiesgoUltimo } from '../../src/lib/providers/argentinadatos';
-import { assignTopic, dedupeByTitle, fetchNews, GNEWS_URL, normalizeNews } from '../../src/lib/providers/news';
+import { assignTopic, dedupeByTitle, fetchNews, GNEWS_URL, normalizeNews, redactKey } from '../../src/lib/providers/news';
 import type { NewsItem } from '../../src/lib/types';
 import dolares from '../../src/lib/fixtures/raw/dolarapi-dolares.json';
 import riesgoUltimo from '../../src/lib/fixtures/raw/argdatos-riesgo-ultimo.json';
@@ -127,19 +127,35 @@ describe('GNews', () => {
           new URL(request.url).searchParams.get('lang') === 'en' ? new HttpResponse(null, { status: 429 }) : HttpResponse.json(gnews),
         ),
       );
+      const logError = vi.spyOn(console, 'error').mockImplementation(() => {});
       const res = await fetchNews('clave-de-prueba', 0);
-      expect(res.ok && res.data.sources).toEqual({ ok: 1, total: 2 });
+      expect(res.ok && res.data.sources).toEqual({ ok: 1, total: 2, failed: [{ lang: 'en', kind: 'rate-limited' }] });
       expect(res.ok && res.data.items.every((n) => n.lang === 'es')).toBe(true);
+      // BUG-01: la falla deja una línea en el log, sin la URL (lleva la API key).
+      expect(logError).toHaveBeenCalledTimes(1);
+      const line = String(logError.mock.calls[0][0]);
+      expect(line).toContain('[news] búsqueda en en falló: rate-limited');
+      expect(line).not.toMatch(/apikey|clave-de-prueba/i);
+      logError.mockRestore();
+    });
+    it('el log tapa la API key si un mensaje de error trae la URL', () => {
+      expect(redactKey('Failed to parse URL from https://gnews.io/api/v4/search?q=x&apikey=abc123&lang=en')).toBe(
+        'Failed to parse URL from https://gnews.io/api/v4/search?q=x&apikey=***&lang=en',
+      );
+      expect(redactKey('HTTP 429: límite de uso alcanzado')).toBe('HTTP 429: límite de uso alcanzado');
     });
     it('las dos fallan → error', async () => {
       server.use(http.get(GNEWS_URL, () => new HttpResponse(null, { status: 429 })));
+      const logError = vi.spyOn(console, 'error').mockImplementation(() => {});
       expect(await fetchNews('clave-de-prueba', 0)).toMatchObject({ ok: false, error: { kind: 'rate-limited' } });
+      expect(logError).toHaveBeenCalledTimes(2); // una línea por búsqueda
+      logError.mockRestore();
     });
     it('mezcla ordenada por fecha descendente', async () => {
       server.use(http.get(GNEWS_URL, () => HttpResponse.json(gnews)));
       const res = await fetchNews('clave-de-prueba', 0);
       const fechas = res.ok ? res.data.items.map((n) => n.publishedAt) : [];
-      expect(res.ok && res.data.sources).toEqual({ ok: 2, total: 2 });
+      expect(res.ok && res.data.sources).toEqual({ ok: 2, total: 2, failed: [] });
       expect(fechas.length).toBeGreaterThan(0);
       expect([...fechas].sort().reverse()).toEqual(fechas);
     });

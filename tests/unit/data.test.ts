@@ -106,7 +106,7 @@ describe('getNews en modo mock', () => {
     const r = await getNews(mock('normal'));
     if (!r.ok) throw new Error('se esperaba ok');
     expect(r.data.mock).toBe(true);
-    expect(r.data.sources).toEqual({ ok: 2, total: 2 });
+    expect(r.data.sources).toEqual({ ok: 2, total: 2, failed: [] });
     expect(r.data.items.some((n) => n.lang === 'es')).toBe(true);
     expect(r.data.items.some((n) => n.lang === 'en')).toBe(true);
     expect(r.data.items.every((n) => typeof n.topic === 'string')).toBe(true);
