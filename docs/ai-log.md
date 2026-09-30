@@ -196,3 +196,27 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 **Por qué estaba mal:** una imagen quieta que se balancea no parece una persona: Mati lo describió como "mover una hoja de papel de derecha a izquierda; el avatar no interactuaba". Las capturas de verificación eran cuadros sueltos y no mostraban ese efecto; recién se vio en la grabación.
 **Cómo lo detecté:** Mati, mirando la grabación de escritorio.
 **Qué hice:** se sacó todo el movimiento de imagen fija. El avatar pasó a ser video: 3 clips del video del Memoji del portafolio de Mati (saludo, reposo en bucle, guiño), con su fondo, en WebM + MP4. Antes se evaluó generar videos nuevos con Gemini (pedía plan pago) y Kling (sin cuenta a mano; no se crean cuentas ni se entra con contraseñas desde el asistente). Aprendizaje: para validar animaciones, mostrar un video, no capturas.
+
+## 2026-09-30 · Tech Lead (tutorial)
+**Qué propuso:** los textos del tutorial en tono coloquial ("Mirá esta tarjeta", "Te la muestro; no te digo si es mucho o poco", "Si te olvidás de algo, estoy en…").
+**Por qué estaba mal:** para un cliente de un banco se leían poco claros y poco serios; "estoy en «¿Cómo leer esto?»" ni siquiera se entiende. El prompt pedía textos "cortos, sin recomendar" y se cuidó lo segundo, no la claridad.
+**Cómo lo detecté:** Mati, al usar el tutorial.
+**Qué hice:** textos reescritos en voseo neutro y formal (el mismo registro que el resto de la interfaz), sin coloquialismos, manteniendo lo que no se dice: la brecha se muestra como "dato informativo: no indica si conviene comprar o vender". Verificado que entren en 390 px.
+
+## 2026-09-30 · Product Owner (criterio H0-4), detectado por QA
+**Qué propuso:** en H0-4, que fuera de horario "cada tarjeta" (las 5) mostrara "Último cierre: día y hora".
+**Por qué estaba mal:** el criterio se escribió el 26/09, antes de verificar los formatos reales de las APIs. ArgentinaDatos publica el riesgo país solo con fecha, sin hora (`raw/argdatos-riesgo-ultimo.json`). Cumplir el criterio al pie de la letra obligaba a inventar una hora ("18:00") que la fuente no da, contra la promesa del producto: "cada dato dice de cuándo es" y "no se muestra ningún valor inventado". El código ya hacía lo correcto (`QuoteCard.tsx`: sin hora → "dato del DD/MM"); el que estaba mal era el criterio.
+**Cómo lo detecté:** al escribir el e2e de mercado cerrado (`tests/e2e/estados.spec.ts`), el chat de QA contrastó el criterio con lo que dibuja la tarjeta y vio que riesgo país nunca muestra "último cierre".
+**Qué hice:** se precisó el criterio en producto.md (marcado como desvío del 30/09): los 4 dólares muestran "último cierre" con hora; riesgo país, "dato del DD/MM". El test verifica exactamente eso. No se tocó código. Aprendizaje: un criterio de aceptación que describe datos se escribe después de ver la respuesta real del proveedor, no antes.
+
+## 2026-09-30 · QA (diagnóstico de noticias en inglés)
+**Qué propuso:** que la búsqueda en inglés había fallado el 29/09 "casi seguro" por la cuota diaria de GNews gastada (100 requests/día).
+**Por qué estaba mal:** se afirmó con confianza antes de mirar el consumo real. El dashboard de GNews muestra 10 requests en todo el 29/09 y 21 en el mes: la cuota nunca estuvo en riesgo.
+**Cómo lo detecté:** Mati mandó capturas del dashboard de GNews (`docs/evidencia/gnews-dashboard-*.png`).
+**Qué hice:** se descartó la hipótesis. La causa real (timeout de 5 s o error de GNews) no se puede determinar: el código descarta el error cuando una búsqueda sale bien y la otra no, y no escribe nada en los logs de Vercel. Eso pasa a ser el bug de bug-report.md.
+
+## 2026-09-30 · QA (e2e de H0-6)
+**Qué propuso:** un e2e para H0-6 ("histórico vacío muestra sin datos") que intercepta `/api/history` en el navegador y le inyecta `ok: true` con una serie vacía.
+**Por qué estaba mal:** probaba la rama de la interfaz sin verificar que el server pudiera llegar a ella. En modo real, un histórico vacío del proveedor sale del server como `ok: false, kind: 'empty'` y el gráfico muestra el error. El test pasaba en verde y el criterio no se cumplía en producción.
+**Cómo lo detecté:** en la revisión de código (paso 4), siguiendo el camino completo desde `fetchJson` hasta `HistoryChart`.
+**Qué hice:** hallazgo #1 de `testing.md` §6; se pidió el arreglo al Tech Lead con un unitario que cubra el camino del server. Aprendizaje: un e2e que modifica la respuesta prueba la interfaz, no el criterio; hace falta al menos un test que recorra el server.

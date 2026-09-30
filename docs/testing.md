@@ -103,3 +103,25 @@ El e2e siempre corre en modo mock (`playwright.config.ts` fuerza `USE_MOCK_DATA=
 | Lighthouse (Accessibility y Performance, celular) sobre la URL pública | Mati | Pendiente |
 | Recorrido con teclado: Tab por tarjetas, tabs del gráfico, "Ver como tabla", links de noticias | Mati | Pendiente |
 | Plan B: activar modo mock en Vercel y verificar el banner en la URL pública | Cierre (fase demo) | Pendiente |
+
+---
+
+## 6. Revisión de código (30/09)
+
+Alcance: `src/app/api/`, `src/lib/` (adaptadores, `fetch-json`, `data`, cache), `src/components/` (salvo `Tutorial.tsx`, en pausa), `next.config.ts` y el historial de git. La cache se verificó contra el código de Next 16 (`node_modules/next/dist/server/lib/patch-fetch.js`), no contra la documentación.
+
+| # | Hallazgo | Severidad | Dónde | Decisión (30/09) |
+|---|---|---|---|---|
+| 1 | **Histórico vacío en modo real muestra error, no "sin datos".** Si ArgentinaDatos devuelve `[]`, `fetchJson` y `normalizeHistorico` lo convierten en `fail('empty')`; el gráfico recibe `ok: false` y muestra "No pudimos obtener el histórico". H0-6 pide "sin datos para este período", distinto del error. El e2e de H0-6 pasaba porque inyecta `ok: true` con serie vacía, una respuesta que el server nunca produce en ese caso. | Media · criterio incumplido | `lib/data.ts` (`getHistory`), `providers/argentinadatos.ts` | Se arregla |
+| 2 | **Las fallas de GNews no dejan rastro.** No hay ningún `console.error` en `src/`; `mergeNews` descarta el error de la búsqueda que falla si la otra sale bien. Es la causa de que el caso 3 no se pudiera diagnosticar. | Media · operación | `providers/news.ts` | Se arregla · `bug-report.md` |
+| 3 | **Mientras una búsqueda falla, cada visita gasta cuota de GNews.** La Data Cache de Next solo guarda respuestas 200 (`patch-fetch.js`, l. 696) y el route handler manda `no-store` si la respuesta es parcial: cada carga de página es una request nueva. Con ~100 visitas en un día así se agota la cuota y cae también la búsqueda en español. | Media · con tráfico real | `api/news/route.ts`, `fetch-json.ts` | Se documenta en `riesgos.md` |
+| 4 | **7 / 30 / 90 días muestran 8 / 31 / 91 días.** `addDays(today, -range)` incluye los dos extremos (caso 2: 7 d = 18/09 a 25/09). | Baja · visible | `lib/data.ts` (`getHistory`) | Se arregla |
+| 5 | Si `/api/quotes` falla después de la primera carga, las tarjetas quedan con el último dato sin aviso de reintento. Es honesto ("hace X min" sigue creciendo), pero no se avisa. | Baja | `Dashboard.tsx` | Se documenta |
+| 6 | La píldora puede decir "Mercado abierto" hasta ~6 min después de las 18:00: el CDN sirve `/api/quotes` con `s-maxage=60, stale-while-revalidate=300` y el estado de mercado se calcula al armar la respuesta. | Baja | `api/quotes/route.ts` | Se documenta |
+| 7 | `/api/news` puede tardar más de 11 s (dos búsquedas de hasta 5 s + 1 s de pausa). Si el límite de duración de funciones del plan de Vercel es menor, la función se corta y el panel muestra error. Límite sin verificar. | Baja · a verificar | `providers/news.ts` | Se documenta; verificar en Vercel |
+
+**Revisado sin hallazgos:**
+- **Claves:** `NEWS_API_KEY` solo se lee en el server (`providers/news.ts`, vía `data.ts`). `next.config.ts` loguea fetches con `fullUrl: false`, así que la URL con la key no va a los logs. En el historial de git no hay `.env*` (solo `.env.example`) ni ningún `apikey=` con valor. Los mensajes de error que viajan al cliente son textos fijos sin URL, y la UI muestra `ERROR_TEXT` por tipo.
+- **Errores al cliente:** ningún route handler lanza por una falla de proveedor (todo viaja como `Result`, siempre HTTP 200). Los tres componentes atrapan también un 500 o un cuerpo no-JSON del propio endpoint.
+- **Cache de cotizaciones e histórico:** con `dynamic = 'force-dynamic'` y `revalidate` explícito en cada `fetch`, la Data Cache sí guarda (`patch-fetch.js`: `force-dynamic` solo anula la cache cuando el fetch no trae configuración). La cache del CDN para noticias se verificó en producción (caso 3).
+
