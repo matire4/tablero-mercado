@@ -52,12 +52,14 @@ describe('getQuotes en modo mock', () => {
 });
 
 describe('getHistory en modo mock', () => {
-  it('blue 30 días: serie recortada y brecha superpuesta', async () => {
+  it('blue 30 días: exactamente 30 fechas (30/08 a 28/09) y brecha superpuesta', async () => {
     const r = await getHistory('blue', 30, mock('normal'));
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.data.series.length).toBeGreaterThanOrEqual(30);
-    expect(r.data.series.every((p) => p.date >= '2026-08-29' && p.date <= '2026-09-28')).toBe(true);
+    // blue tiene un dato por día calendario: 30 días = 30 puntos. Antes del 30/09 daba 31 (hallazgo #4 de QA).
+    expect(r.data.series.length).toBe(30);
+    expect(r.data.series[0].date).toBe('2026-08-30');
+    expect(r.data.series[r.data.series.length - 1].date).toBe('2026-09-28');
     expect(r.data.gapSeries?.length).toBe(r.data.series.length);
   });
   it('oficial y riesgo país: sin serie de brecha (H1-3)', async () => {

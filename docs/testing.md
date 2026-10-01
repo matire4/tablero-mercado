@@ -27,11 +27,11 @@ Presupuesto de QA: 3 h. Al arrancar QA ya existían 85 unitarios y 15 e2e escrit
 | Criterio | Unitario | e2e |
 |---|---|---|
 | H0-1 · 5 tarjetas, hora del dato, disclaimer sin scroll | `change`, `format` | `tablero.spec` |
-| H0-2 · gráfico por activo, 7/30/90 | `data` | `tablero.spec` |
+| H0-2 · gráfico por activo, 7/30/90 | `data` (30/09: cantidad exacta de fechas, hallazgo #4) | `tablero.spec` |
 | H0-3 · noticias con título, fuente, fecha, idioma, tema fijo | `providers` | `tablero.spec` |
 | H0-4 · fin de semana/feriado: último cierre, sin error | `market-status`, `data` | **`estados.spec`** |
 | H0-5 · proveedor caído: error propio, el resto sigue, sin valor inventado | `fetch-json`, `providers`, **`dolarapi-fetch`** | `tablero.spec` (noticias), **`estados.spec` (cotizaciones)** |
-| H0-6 · histórico vacío: "sin datos", distinto de error | — | **`estados.spec`** |
+| H0-6 · histórico vacío: "sin datos", distinto de error | `data` (30/09: modo real con MSW, `[]` → sin datos, 500 → error) | **`estados.spec`** |
 | H0-7 · celular apilado, sin corte | — | `tablero.spec` + caso 2 (manual) |
 | H1-1 · brecha en tarjeta, un decimal | `brecha` | `tablero.spec` |
 | H1-2 · panel de brecha propio, alineado por fecha | `data` | `tablero.spec` |
@@ -112,10 +112,10 @@ Alcance: `src/app/api/`, `src/lib/` (adaptadores, `fetch-json`, `data`, cache), 
 
 | # | Hallazgo | Severidad | Dónde | Decisión (30/09) |
 |---|---|---|---|---|
-| 1 | **Histórico vacío en modo real muestra error, no "sin datos".** Si ArgentinaDatos devuelve `[]`, `fetchJson` y `normalizeHistorico` lo convierten en `fail('empty')`; el gráfico recibe `ok: false` y muestra "No pudimos obtener el histórico". H0-6 pide "sin datos para este período", distinto del error. El e2e de H0-6 pasaba porque inyecta `ok: true` con serie vacía, una respuesta que el server nunca produce en ese caso. | Media · criterio incumplido | `lib/data.ts` (`getHistory`), `providers/argentinadatos.ts` | Se arregla |
-| 2 | **Las fallas de GNews no dejan rastro.** No hay ningún `console.error` en `src/`; `mergeNews` descarta el error de la búsqueda que falla si la otra sale bien. Es la causa de que el caso 3 no se pudiera diagnosticar. | Media · operación | `providers/news.ts` | Se arregla · `bug-report.md` |
+| 1 | **Histórico vacío en modo real muestra error, no "sin datos".** Si ArgentinaDatos devuelve `[]`, `fetchJson` y `normalizeHistorico` lo convierten en `fail('empty')`; el gráfico recibe `ok: false` y muestra "No pudimos obtener el histórico". H0-6 pide "sin datos para este período", distinto del error. El e2e de H0-6 pasaba porque inyecta `ok: true` con serie vacía, una respuesta que el server nunca produce en ese caso. | Media · criterio incumplido | `lib/data.ts` (`getHistory`), `providers/argentinadatos.ts` | **Arreglado en `8cdcd9a`**: `empty` de la serie del activo → `ok` con `series: []`. El e2e de H0-6 ahora tiene respaldo: un unitario recorre el server en modo real con MSW. |
+| 2 | **Las fallas de GNews no dejan rastro.** No hay ningún `console.error` en `src/`; `mergeNews` descarta el error de la búsqueda que falla si la otra sale bien. Es la causa de que el caso 3 no se pudiera diagnosticar. | Media · operación | `providers/news.ts` | **Arreglado en `83587f6`** · `bug-report.md` BUG-01 (resuelto, verificado en producción) |
 | 3 | **Mientras una búsqueda falla, cada visita gasta cuota de GNews.** La Data Cache de Next solo guarda respuestas 200 (`patch-fetch.js`, l. 696) y el route handler manda `no-store` si la respuesta es parcial: cada carga de página es una request nueva. Con ~100 visitas en un día así se agota la cuota y cae también la búsqueda en español. | Media · con tráfico real | `api/news/route.ts`, `fetch-json.ts` | Se documenta en `riesgos.md` |
-| 4 | **7 / 30 / 90 días muestran 8 / 31 / 91 días.** `addDays(today, -range)` incluye los dos extremos (caso 2: 7 d = 18/09 a 25/09). | Baja · visible | `lib/data.ts` (`getHistory`) | Se arregla |
+| 4 | **7 / 30 / 90 días muestran 8 / 31 / 91 días.** `addDays(today, -range)` incluye los dos extremos (caso 2: 7 d = 18/09 a 25/09). | Baja · visible | `lib/data.ts` (`getHistory`) | **Arreglado en `d0e289c`**: ventana `addDays(today, -(range - 1))` a hoy. Tests: MEP 7 d en `viernes-cerrado` = 19/09 a 25/09; blue 30 d = exactamente 30 fechas, 30/08 a 28/09 (antes el test aceptaba 31). |
 | 5 | Si `/api/quotes` falla después de la primera carga, las tarjetas quedan con el último dato sin aviso de reintento. Es honesto ("hace X min" sigue creciendo), pero no se avisa. | Baja | `Dashboard.tsx` | Se documenta |
 | 6 | La píldora puede decir "Mercado abierto" hasta ~6 min después de las 18:00: el CDN sirve `/api/quotes` con `s-maxage=60, stale-while-revalidate=300` y el estado de mercado se calcula al armar la respuesta. | Baja | `api/quotes/route.ts` | Se documenta |
 | 7 | `/api/news` puede tardar más de 11 s (dos búsquedas de hasta 5 s + 1 s de pausa). Si el límite de duración de funciones del plan de Vercel es menor, la función se corta y el panel muestra error. Límite sin verificar. | Baja · a verificar | `providers/news.ts` | Se documenta; verificar en Vercel |
