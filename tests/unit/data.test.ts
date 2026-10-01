@@ -4,6 +4,7 @@ import { setupServer } from 'msw/node';
 import { configFromEnv, getHistory, getNews, getQuotes, type DataConfig } from '../../src/lib/data';
 import { ARGDATOS_BASE, historicoUrl } from '../../src/lib/providers/argentinadatos';
 import feriadosRaw from '../../src/lib/fixtures/raw/argdatos-feriados.json';
+import historyBlue from '../../src/lib/fixtures/history-blue.json';
 import historyOficial from '../../src/lib/fixtures/history-oficial.json';
 
 const mock = (scenario: DataConfig['scenario']): DataConfig => ({ mock: true, scenario, newsApiKey: undefined });
@@ -106,6 +107,22 @@ describe('getHistory en modo real con MSW (H0-6)', () => {
   it('ArgentinaDatos cambia el formato (renombra fecha) → error invalid, no "sin datos" (hallazgo #8)', async () => {
     conBlue(() => HttpResponse.json([{ casa: 'blue', compra: 1, venta: 2, fechaRenombrada: '2026-09-28' }]));
     expect(await getHistory('blue', 30, real)).toMatchObject({ ok: false, error: { kind: 'invalid' } });
+  });
+  it('blue bien y oficial con 500 → ok, sin serie de brecha y gapUnavailable: true (hallazgo #10)', async () => {
+    server.use(
+      http.get(historicoUrl('blue'), () => HttpResponse.json(historyBlue)),
+      http.get(historicoUrl('oficial'), () => new HttpResponse(null, { status: 500 })),
+      http.get(`${ARGDATOS_BASE}/feriados/:year`, () => HttpResponse.json(feriadosRaw)),
+    );
+    const r = await getHistory('blue', 30, real);
+    expect(r).toMatchObject({ ok: true, data: { gapSeries: null, gapUnavailable: true } });
+  });
+  it('oficial: la brecha no aplica → gapUnavailable: false (H1-3)', async () => {
+    server.use(
+      http.get(historicoUrl('oficial'), () => HttpResponse.json(historyOficial)),
+      http.get(`${ARGDATOS_BASE}/feriados/:year`, () => HttpResponse.json(feriadosRaw)),
+    );
+    expect(await getHistory('oficial', 30, real)).toMatchObject({ ok: true, data: { gapSeries: null, gapUnavailable: false } });
   });
 });
 

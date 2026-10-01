@@ -66,6 +66,8 @@ export function HistoryChart() {
   const series: HistoryPoint[] = data?.ok ? data.data.series : [];
   const gapSeries: HistoryPoint[] | null = data?.ok ? data.data.gapSeries : null;
   const hasGap = !!gapSeries && gapSeries.length > 0;
+  // Paralelo sin histórico del oficial: en el lugar del panel de brecha va una línea (hallazgo #10). Oficial y riesgo país: nada (H1-3).
+  const gapUnavailable = data?.ok ? data.data.gapUnavailable : false;
   const totalH = PAD.top + PRICE_H + (hasGap ? GAP_SEP + GAP_H : 0) + PAD.bottom;
 
   // Escalas
@@ -193,6 +195,8 @@ export function HistoryChart() {
                 </g>
               )}
             </svg>
+
+            {gapUnavailable && <p className="chart-note secondary">Brecha no disponible para este período</p>}
 
             {h && (
               <div className="tooltip" style={{ left: `${(h.x / width) * 100}%` }} role="status">

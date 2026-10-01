@@ -263,6 +263,8 @@ html[data-intro='open'] .page { animation: page-approach 800ms cubic-bezier(0.2,
 .chart-state.error { border: 1px dashed var(--error-border); border-radius: 16px; }
 .chart-state.empty { border: 1px solid var(--line); border-radius: 16px; }
 .chart-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; color: var(--fg-2); align-items: center; }
+/* Línea de aviso bajo el gráfico (brecha no disponible, puntos descartados): mismo estilo que la leyenda, sin color de error. */
+.chart-note { margin: 8px 0 0; font-size: 12px; color: var(--fg-2); }
 /* "Ver como tabla": cerrado queda a la derecha de la leyenda; abierto ocupa todo el ancho debajo,
    con altura máxima y scroll propio (antes estiraba la fila de la leyenda y dejaba un hueco vacío). */
 .table-toggle { margin-left: auto; }

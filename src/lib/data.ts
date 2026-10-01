@@ -140,13 +140,15 @@ export async function getHistory(asset: AssetId, range: 7 | 30 | 90, cfg: DataCo
   // Serie vacía del proveedor = "sin datos para este período" (H0-6), no error. Los demás errores siguen siendo error.
   // fetchJson no cambia: para cotizaciones, vacío sigue siendo error (H0-5).
   if (!serie.ok) {
-    return serie.error.kind === 'empty' ? ok({ asset, range, series: [], gapSeries: null, market }) : serie;
+    return serie.error.kind === 'empty' ? ok({ asset, range, series: [], gapSeries: null, gapUnavailable: false, market }) : serie;
   }
 
   const series = recorte(serie.data);
   const gapSeries = needsOficial && oficial.ok ? brechaSeries(series, recorte(oficial.data)) : null;
+  // Paralelo con el oficial en error: la brecha aplica pero falta. El gráfico lo dice en vez de esconder el panel (hallazgo #10).
+  const gapUnavailable = needsOficial && !oficial.ok;
 
-  return ok({ asset, range, series, gapSeries, market });
+  return ok({ asset, range, series, gapSeries, gapUnavailable, market });
 }
 
 export type { NewsResponse };

@@ -49,6 +49,11 @@ export interface HistoryResponse {
   range: 7 | 30 | 90;
   series: HistoryPoint[];
   gapSeries: HistoryPoint[] | null;
+  /**
+   * `true` solo si el activo es un paralelo y el histórico del oficial falló: la brecha aplica pero no se pudo calcular.
+   * Distingue ese caso del `gapSeries: null` de oficial y riesgo país, donde la brecha no aplica (hallazgo #10 de QA).
+   */
+  gapUnavailable: boolean;
   market: MarketStatus;
 }
 

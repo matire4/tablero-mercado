@@ -111,3 +111,25 @@ test('H0-6 · histórico vacío muestra "sin datos", distinto del error', async 
   await expect(chart.getByRole('alert')).toContainText('No pudimos obtener el histórico');
   await expect(chart.getByText('Sin datos para este período')).toHaveCount(0);
 });
+
+test('H1-2 · histórico del oficial caído: el gráfico de un paralelo dice "Brecha no disponible" (hallazgo #10)', async ({ page }) => {
+  await page.route('**/api/history/blue**', async (route) => {
+    const res = await route.fetch();
+    const body = await res.json();
+    body.data.gapSeries = null;
+    body.data.gapUnavailable = true;
+    await route.fulfill({ response: res, json: body });
+  });
+  await page.goto('/');
+
+  const chart = page.getByRole('region', { name: 'Evolución' });
+  await expect(chart.getByText('Brecha no disponible para este período')).toBeVisible();
+  await expect(chart.locator('.line.gap')).toHaveCount(0);
+  await expect(chart.locator('.line.price')).toHaveCount(1);
+  await expect(chart.getByRole('alert')).toHaveCount(0);
+
+  // Oficial: la brecha no aplica, no hay panel ni aviso (H1-3).
+  await chart.getByRole('tablist', { name: 'Activo' }).getByRole('tab', { name: 'Oficial' }).click();
+  await expect(chart.locator('.line.price')).toHaveCount(1);
+  await expect(chart.getByText('Brecha no disponible para este período')).toHaveCount(0);
+});
