@@ -99,6 +99,7 @@ Alcance de interfaz aceptado con su costo (3-4 h, ver `estimaciones.md`), a part
 - El gráfico se dibuja al cambiar de activo o de rango.
 - Tabla accesible "Ver como tabla" debajo del gráfico.
 - Tutorial de 4 pasos (valor y hora · brecha · mercado cerrado · noticias con demora) que se abre solo la primera vez o desde el botón "¿Cómo leer esto?".
+- Avatar en el tutorial *(agregado el 29/09, 3,5-4,5 h en dos vueltas, ver `estimaciones.md`)*: el tutorial lo guía un avatar animado (clips cortos del Memoji de Mati, sin fondo, con globo de cómic) que saluda en una bienvenida con Empezar / Saltar y acompaña cada paso. Se eligió sobre una mascota neutra para darle entidad en la demo. No habla ni señala; los textos van en el globo, en primera persona y sin recomendar. En un banco se reemplaza por su mascota o se saca sin tocar la lógica. Con `prefers-reduced-motion` queda en un cuadro fijo. Peso aproximado 1 MB, solo la primera vez que se abre el tutorial.
 
 Todo movimiento respeta `prefers-reduced-motion`. Siguen vigentes: sin flechas ni verde/rojo en variación y brecha; números en formato es-AR.
 
