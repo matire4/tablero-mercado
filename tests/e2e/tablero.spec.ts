@@ -144,7 +144,7 @@ test('Tutorial · la primera vez se abre solo con la bienvenida; Empezar va al p
     localStorage.removeItem('tutorial-seen');
   });
   await page.reload();
-  const dialog = page.getByRole('dialog', { name: '¡Hola! Soy Mati.' });
+  const dialog = page.getByRole('dialog', { name: 'Hola, soy Mati.' });
   await expect(dialog).toBeVisible();
   await expect(page.locator('.card .card-value')).toHaveCount(5);
   await expect(page.getByTestId('tour-avatar')).toHaveAttribute('aria-hidden', 'true'); // el avatar es decorativo

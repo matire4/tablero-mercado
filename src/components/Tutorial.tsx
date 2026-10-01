@@ -22,22 +22,22 @@ const STEPS = [
   {
     anchor: 'valor',
     title: 'Valor y hora del dato',
-    text: 'Mirá esta tarjeta: es el precio de venta y hace cuánto se actualizó. Si dice "último cierre", el mercado está cerrado y el dato es de ese momento.',
+    text: 'Cada tarjeta muestra el precio de venta y cuándo se actualizó. Si indica «último cierre», el mercado está cerrado y el valor corresponde a ese momento.',
   },
   {
     anchor: 'brecha',
     title: 'Brecha',
-    text: 'Esto es la brecha: cuánto se aleja este dólar del oficial, en porcentaje. Te la muestro; no te digo si es mucho o poco.',
+    text: 'La brecha indica, en porcentaje, cuánto se diferencia este dólar del oficial. Es un dato informativo: no indica si conviene comprar o vender.',
   },
   {
     anchor: 'mercado',
     title: 'Mercado abierto o cerrado',
-    text: 'Acá ves si el mercado está abierto o cerrado. Si está cerrado, las tarjetas quedan con el último valor y te dicen de cuándo es.',
+    text: 'Este indicador muestra si el mercado está abierto o cerrado. Cuando está cerrado, las tarjetas conservan el último valor disponible e indican a qué momento corresponde.',
   },
   {
     anchor: 'noticias',
     title: 'Noticias con demora',
-    text: 'Las noticias pueden venir con hasta 12 h de demora: cada una dice cuándo salió. Van de la más nueva a la más vieja, no por importancia. Si te olvidás de algo, estoy en "¿Cómo leer esto?".',
+    text: 'Las noticias pueden publicarse con hasta 12 horas de demora; cada una indica cuándo salió. Se ordenan de la más reciente a la más antigua, no por relevancia. Podés volver a ver esta guía desde «¿Cómo leer esto?».',
   },
 ] as const;
 
@@ -260,14 +260,14 @@ function TourLayer({ step, setStep, onClose }: LayerProps) {
           {welcome ? (
             <>
               <div aria-live="polite" aria-atomic="true">
-                <h2 id="tour-title" className="tour-hello">¡Hola! Soy Mati.</h2>
-                <p id="tour-text" className="tour-text secondary">Te muestro en 30 segundos cómo leer este tablero: son 4 cosas y listo.</p>
+                <h2 id="tour-title" className="tour-hello">Hola, soy Mati.</h2>
+                <p id="tour-text" className="tour-text secondary">Te muestro en cuatro pasos cómo leer este tablero. Lleva menos de un minuto.</p>
               </div>
               <div className="tour-actions welcome">
                 <button type="button" className="tour-btn" onClick={onClose}>Saltar</button>
                 <button ref={nextRef} type="button" className="tour-btn primary" onClick={() => setStep(0)}>Empezar</button>
               </div>
-              <p className="tour-note secondary">Podés salir en cualquier momento.</p>
+              <p className="tour-note secondary">Podés salir del tutorial en cualquier momento.</p>
             </>
           ) : (
             <>
