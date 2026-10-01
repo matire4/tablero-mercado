@@ -220,3 +220,27 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 **Por qué estaba mal:** probaba la rama de la interfaz sin verificar que el server pudiera llegar a ella. En modo real, un histórico vacío del proveedor sale del server como `ok: false, kind: 'empty'` y el gráfico muestra el error. El test pasaba en verde y el criterio no se cumplía en producción.
 **Cómo lo detecté:** en la revisión de código (paso 4), siguiendo el camino completo desde `fetchJson` hasta `HistoryChart`.
 **Qué hice:** hallazgo #1 de `testing.md` §6; se pidió el arreglo al Tech Lead con un unitario que cubra el camino del server. Aprendizaje: un e2e que modifica la respuesta prueba la interfaz, no el criterio; hace falta al menos un test que recorra el server.
+
+## 2026-09-30 · QA (prompt de arreglos al Tech Lead)
+**Qué propuso:** en el test del hallazgo #1, mockear con MSW el histórico de blue y la URL de feriados, "porque `getHistory` la pide".
+**Por qué estaba mal:** incompleto. `getHistory('blue')` pide también el histórico del **oficial** para calcular la brecha. Con `onUnhandledRequest: 'error'`, esa request sin mock falla por fuera del caso que se quería probar.
+**Cómo lo detecté:** el Tech Lead, leyendo `getHistory` antes de escribir el test.
+**Qué hice:** se consultó a Mati antes de seguir. El oficial responde con `history-oficial.json`, así el test prueba además que con blue vacío `gapSeries` es `null` aunque el oficial tenga datos.
+
+## 2026-09-30 · Tech Lead (test "blue 30 días", escrito el 28/09)
+**Qué propuso:** un test que comprobaba "30 o más puntos, todos desde el 29/08".
+**Por qué estaba mal:** aceptaba los 31 puntos que producía el error de un día de más en la ventana (hallazgo #4). El test describía lo que hacía el código, no lo que pedía el selector.
+**Cómo lo detecté:** QA, en la revisión de código (caso 2: 7 d mostraba 8 fechas). El prompt de arreglos pedía solo que siguiera pasando; el Tech Lead propuso endurecerlo y Mati lo aprobó.
+**Qué hice:** el test exige exactamente 30 fechas, del 30/08 al 28/09 (`eb368db`). Aprendizaje: un test de rango compara contra la cantidad exacta, no contra un mínimo.
+
+## 2026-09-30 · Tech Lead (arreglos de QA, operación sobre el repo)
+**Qué propuso:** correr `git status` desde la shell del asistente en la carpeta de Mati para leer el estado del repo.
+**Por qué estaba mal:** `git status` refresca el índice y crea `.git/index.lock`. La shell del asistente no tenía permiso para borrar archivos, así que el lock quedó en el repo y le habría bloqueado el siguiente commit a Mati ("Another git process seems to be running").
+**Cómo lo detecté:** el propio aviso de git ("unable to unlink .git/index.lock").
+**Qué hice:** se pidió permiso de borrado, se borró solo ese archivo y se avisó a Mati. Desde ahí, todo comando de lectura usa `git --no-optional-locks`.
+
+## 2026-09-30 · Decisiones de Mati durante los arreglos de QA (no son errores; quedan registradas)
+- **Cache del histórico sin datos:** con el arreglo del #1, la respuesta sin datos sale `ok` y el route handler le pone `s-maxage=3600` en vez de `no-store`. El Tech Lead lo avisó antes de implementar (la regla era no tocar la cache). Mati lo aceptó: no se tocó código de cache, y en frescura casi no cambia, porque la Data Cache ya guardaba ese `[]` 24 h (vino con HTTP 200). Documentado en arquitectura.md §6.
+- **`redactKey` en el log de GNews:** el pedido era loguear el `message` del error. El Tech Lead marcó un caso teórico en el que ese mensaje podría traer la URL con la key (un error de Node al armar la request). Mati eligió taparla: `apikey=…` → `apikey=***`, con test.
+- **Tests en una copia aparte:** el `node_modules` de Mati es de macOS y la shell del asistente es Linux. Los unitarios se corrieron en una copia del repo con `npm ci` propio. El e2e lo corre Mati.
+- **Hallazgo #3 documentado en riesgos.md** por el Tech Lead, con 5 min por encima del presupuesto de 45, aprobado por Mati.

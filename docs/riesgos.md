@@ -18,7 +18,7 @@ La matriz completa (riesgo, probabilidad, impacto, mitigación) la arma el rol Q
 
 ### 2026-09-28 · Límite de requests simultáneas en GNews
 **Qué pasó:** dos búsquedas en paralelo con la misma key: una dio HTTP 429 con menos de 10 requests usadas en el día.
-**Mitigación implementada:** búsquedas en secuencia con 1 s de pausa; si una búsqueda falla, la respuesta lleva `sources: { ok, total }` y el route handler manda `Cache-Control: no-store` para que el CDN no retenga 45 min una lista incompleta.
+**Mitigación implementada:** búsquedas en secuencia con 1 s de pausa; si una búsqueda falla, la respuesta lleva `sources: { ok, total, failed }` (`failed` desde el 30/09, ver BUG-01) y el route handler manda `Cache-Control: no-store` para que el CDN no retenga 45 min una lista incompleta.
 **Riesgo residual:** la respuesta parcial (solo un idioma) es válida y se muestra; el usuario no ve un error, ve menos notas.
 
 ### 2026-09-28 · Demora de 12 h en las noticias (plan gratis)
@@ -40,3 +40,10 @@ La matriz completa (riesgo, probabilidad, impacto, mitigación) la arma el rol Q
 ### 2026-09-29 · Lista de noticias larga en celular
 **Qué pasa:** con dos búsquedas de hasta 10 notas, el panel muestra hasta ~20 notas seguidas; en celular es un scroll largo para un tablero "de un vistazo".
 **Decisión:** se deja la lista completa. Se evaluó mostrar 8 y un botón "ver más" (~15 min) y se descartó por no sumar alcance. El panel va último en la página, así que no tapa las cotizaciones ni el gráfico.
+
+### 2026-09-30 · Mientras una búsqueda de noticias falla, cada visita gasta cuota de GNews
+**Origen:** hallazgo #3 de la revisión de código de QA (`testing.md` §6). Se documenta y no se arregla ahora (decisión de Mati, 30/09).
+**Qué pasa:** la Data Cache de Next solo guarda respuestas HTTP 200 (`node_modules/next/dist/server/lib/patch-fetch.js`, l. 696), así que la búsqueda que falla no queda en cache. Y si la lista es parcial, el route handler de `/api/news` manda `Cache-Control: no-store`, así que el CDN tampoco la guarda. Resultado: mientras una búsqueda falla, cada carga de la página vuelve a pedir esa búsqueda a GNews.
+**Impacto:** con tráfico real, ~100 visitas en un día con una búsqueda caída agotan la cuota del plan gratis (100 requests/día), y entonces cae también la búsqueda que andaba: el panel pasa de "lista incompleta" a error. Con el tráfico de la demo (un puñado de visitas) no llega a pasar: el 29/09 hubo 10 requests en todo el día con la búsqueda en inglés caída al menos 3 h (`docs/evidencia/gnews-dashboard-dias-30-09.png`).
+**Detección (desde el 30/09):** cada falla deja una línea `[news] búsqueda en <idioma> falló: …` en los logs de Vercel y aparece en `sources.failed` de `/api/news` (BUG-01, `83587f6`). Un consumo acelerado de cuota se vería como muchas líneas `[news]` seguidas y en el dashboard de GNews.
+**Mitigación posible, no implementada:** cachear también la respuesta parcial por poco tiempo (por ejemplo, 1 a 5 min en el CDN) para que una falla no se pida en cada visita, o pasar al plan pago de GNews si el producto avanza (ya es la palanca elegida para la cuota, ver CLAUDE.md, decisión del 28/09). Cualquiera de las dos cambia la cache, que el 30/09 se decidió no tocar.
