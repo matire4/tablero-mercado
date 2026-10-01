@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Estado** | Abierto · arreglo pedido al Tech Lead el 30/09 (`testing.md` §6, hallazgo #2) |
+| **Estado** | **Resuelto en `83587f6`** (30/09) · verificado en producción el 30/09 21:12 hora Argentina · arreglo pedido al Tech Lead el 30/09 (`testing.md` §6, hallazgo #2) |
 | **Reportado por** | QA, 30/09/2026 |
 | **Detectado** | 29/09/2026 20:02 UTC, mirando la URL pública después del deploy del tutorial |
 | **Entorno** | Producción · https://tablero-mercado.vercel.app · Vercel (plan Hobby, Node 24.x) · commit `f21d706` · GNews plan gratis |
@@ -79,6 +79,20 @@ return ok({ items, sources: { ok: okOnes.length, total: results.length } });  //
 - Unitario con MSW: con 429 en `lang=en`, `sources.failed` es `[{ lang: 'en', kind: 'rate-limited' }]`, `console.error` se llama una vez y el texto no contiene `apikey`.
 - En producción, después del deploy: `curl -s .../api/news` muestra `sources.failed: []` con las dos búsquedas bien.
 - Si vuelve a fallar: el `curl` dice qué búsqueda y de qué tipo, y Vercel → Logs muestra la línea `[news]` con el nivel Error.
+
+### Verificación (30/09)
+
+| Dónde | Qué se hizo | Resultado |
+|---|---|---|
+| Unitario (`providers.test.ts`, `fetchNews con MSW`) | 429 en `lang=en`, 200 en `lang=es` | `sources: { ok: 1, total: 2, failed: [{ lang: 'en', kind: 'rate-limited' }] }`; `console.error` 1 vez, sin `apikey` ni la clave. 90 tests en verde con `npm run check`. |
+| Unitario | Las dos búsquedas fallan | `ok: false` con el primer error; 2 líneas de log, una por búsqueda. |
+| Unitario | `redactKey` (agregado por decisión de Mati, 30/09) | Un mensaje que trajera la URL sale con `apikey=***`. |
+| Local, modo real con clave inválida | `USE_MOCK_DATA=false NEWS_API_KEY=invalida npm run dev` y GET `/api/news` | En la terminal: `[news] búsqueda en es falló: upstream · HTTP 400` y la misma línea para `en`. Sin la clave; el log de fetch de Next también corta la URL. GNews responde 400 (no 401) a una clave inválida. |
+| Producción, después del deploy de `83587f6` | `curl -s https://tablero-mercado.vercel.app/api/news` | 2026-10-01 00:12:53Z (30/09 21:12 hora Argentina): `ok: true`, `sources: { ok: 2, total: 2, failed: [] }`, 20 notas. Que aparezca `failed` confirma que corre la versión nueva. |
+
+**Queda sin observar:** la línea `[news]` en los Runtime Logs de Vercel con nivel Error. Solo aparece cuando una búsqueda falla en producción, y desde el deploy no falló ninguna. Si vuelve a fallar: `curl` a `/api/news` → `sources.failed` dice qué búsqueda y de qué tipo; Vercel → Logs muestra la línea con el mensaje, si todavía está dentro de la retención del plan.
+
+La causa raíz del incidente del 29/09 sigue **sin determinar**: el arreglo no la explica hacia atrás, hace que la próxima se pueda explicar.
 
 ### Evidencia
 
