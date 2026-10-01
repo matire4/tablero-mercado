@@ -55,8 +55,9 @@ export interface HistoryResponse {
    */
   gapUnavailable: boolean;
   /**
-   * Elementos de la serie del proveedor descartados por formato (en toda la serie, no solo en el rango). Con `> 0` la
-   * respuesta sigue siendo `ok` y el gráfico avisa que faltan datos; si no queda ninguno válido es `invalid` (hallazgos #8 y #9).
+   * Elementos del proveedor descartados por formato en las series que usa el gráfico: la del activo y, en un paralelo,
+   * la del oficial que arma la brecha (en toda la serie, no solo en el rango). Con `> 0` la respuesta sigue siendo `ok`
+   * y el gráfico avisa que faltan datos; si la serie del activo no tiene ninguno válido es `invalid` (hallazgos #8, #9 y #11).
    */
   skippedPoints: number;
   market: MarketStatus;

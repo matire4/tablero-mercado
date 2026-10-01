@@ -132,6 +132,43 @@ describe('getHistory en modo real con MSW (H0-6)', () => {
       warn.mockRestore();
     }
   });
+  it('blue bien y oficial con la mitad de los venta en null → los descartados del oficial cuentan en skippedPoints y salen en el log (hallazgo #11)', async () => {
+    const oficialRoto = historyOficial.map((p, i) => (i % 2 === 0 ? { ...p, venta: null } : p));
+    server.use(
+      http.get(historicoUrl('blue'), () => HttpResponse.json(historyBlue)),
+      http.get(historicoUrl('oficial'), () => HttpResponse.json(oficialRoto)),
+      http.get(`${ARGDATOS_BASE}/feriados/:year`, () => HttpResponse.json(feriadosRaw)),
+    );
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const r = await getHistory('blue', 30, real);
+      expect(r.ok).toBe(true);
+      if (!r.ok) return;
+      const descartados = Math.ceil(historyOficial.length / 2);
+      expect(r.data.skippedPoints).toBe(descartados); // blue no tiene descartados: es todo del oficial
+      expect(r.data.gapUnavailable).toBe(false);
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toBe(`[history] oficial (brecha de blue): ${descartados} puntos descartados por formato`);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+  it('oficial como activo con puntos inválidos → avisa por su propia serie, una sola línea (hallazgo #11)', async () => {
+    const oficialRoto = historyOficial.map((p, i) => (i % 2 === 0 ? { ...p, venta: null } : p));
+    server.use(
+      http.get(historicoUrl('oficial'), () => HttpResponse.json(oficialRoto)),
+      http.get(`${ARGDATOS_BASE}/feriados/:year`, () => HttpResponse.json(feriadosRaw)),
+    );
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const r = await getHistory('oficial', 30, real);
+      expect(r).toMatchObject({ ok: true, data: { skippedPoints: Math.ceil(historyOficial.length / 2), gapUnavailable: false } });
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toBe(`[history] oficial: ${Math.ceil(historyOficial.length / 2)} puntos descartados por formato`);
+    } finally {
+      warn.mockRestore();
+    }
+  });
   it('oficial: la brecha no aplica → gapUnavailable: false (H1-3)', async () => {
     server.use(
       http.get(historicoUrl('oficial'), () => HttpResponse.json(historyOficial)),

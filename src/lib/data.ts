@@ -149,8 +149,13 @@ export async function getHistory(asset: AssetId, range: 7 | 30 | 90, cfg: DataCo
   const gapUnavailable = needsOficial && !oficial.ok;
 
   // Elementos del proveedor descartados por formato (en toda la serie): se avisa en el log y en el gráfico (hallazgo #9).
-  const skippedPoints = serie.data.skipped;
-  if (skippedPoints > 0) console.warn(`[history] ${asset}: ${skippedPoints} puntos descartados por formato`);
+  // `skippedPoints` suma las series que usa el gráfico: la del activo y, en un paralelo, la del oficial que arma la brecha
+  // (hallazgo #11). El cliente muestra el mismo aviso; el log dice de qué serie vinieron.
+  const skippedOwn = serie.data.skipped;
+  const skippedOficial = needsOficial && oficial.ok ? oficial.data.skipped : 0;
+  if (skippedOwn > 0) console.warn(`[history] ${asset}: ${skippedOwn} puntos descartados por formato`);
+  if (skippedOficial > 0) console.warn(`[history] oficial (brecha de ${asset}): ${skippedOficial} puntos descartados por formato`);
+  const skippedPoints = skippedOwn + skippedOficial;
 
   return ok({ asset, range, series, gapSeries, gapUnavailable, skippedPoints, market });
 }
