@@ -8,14 +8,16 @@ const STORAGE_KEY = 'tutorial-seen';
 const WELCOME = -1; // la bienvenida no cuenta como paso
 
 /**
- * Avatar del tutorial: tres clips del video del Memoji de Mati (el de su portafolio), sin fondo (segmentados cuadro
- * por cuadro al armarlos) y en WebP animado con transparencia, que anda en Chrome, Firefox y Safari. Cada uno tiene
- * además su primer cuadro fijo (-0.webp) para prefers-reduced-motion. Son decorativos (aria-hidden) y se cambian
- * sin tocar la lógica: en un banco va su mascota o se sacan (docs/demo.md).
- * saludo: bienvenida (una vez) · reposo: en bucle durante los pasos · guino: al llegar al último paso (una vez).
+ * Avatar del tutorial: tres clips de un mismo video del Memoji de Mati (generado con Kling sobre verde, 01/10), sin
+ * fondo y en WebP animado con transparencia, que anda en Chrome, Firefox y Safari. Cada clip se reproduce UNA vez y
+ * queda en su último cuadro, que es la pose de frente: así no hay cambio de imagen al terminar (antes el saludo
+ * pasaba a un clip de reposo que no estaba cargado y el avatar desaparecía un instante). Los clips empiezan y terminan
+ * en la misma pose, así que encadenan sin saltos. Para prefers-reduced-motion hay un cuadro fijo (-0.webp).
+ * Son decorativos (aria-hidden) y se cambian sin tocar la lógica: en un banco va su mascota o se sacan (docs/demo.md).
+ * saludo: bienvenida · paso: señala y vuelve, en cada paso · cierre: guiño y pulgar arriba, en el último paso.
  */
-type Clip = 'saludo' | 'reposo' | 'guino';
-const ONCE_MS: Record<Exclude<Clip, 'reposo'>, number> = { saludo: 58 * 67, guino: 18 * 67 }; // cuadros × 67 ms
+type Clip = 'saludo' | 'paso' | 'cierre';
+const clipUrl = (c: Clip, run: number, step: number) => `/avatar/mati-${c}.webp?n=${run}-${step}`;
 
 /** Cada paso apunta a un elemento real del tablero por su atributo data-tutorial (no por clase). */
 const STEPS = [
@@ -76,6 +78,8 @@ export function Tutorial({ ready }: { ready: boolean }) {
   // null = nadie lo abrió ni lo cerró todavía: decide la apertura automática.
   const [choice, setChoice] = useState<boolean | null>(null);
   const [step, setStep] = useState(WELCOME);
+  // Cuántas veces se abrió desde el botón: va en la URL de los clips para que vuelvan a animarse (ver TourLayer).
+  const [run, setRun] = useState(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const open = choice ?? (ready && intro && firstVisit);
@@ -100,22 +104,23 @@ export function Tutorial({ ready }: { ready: boolean }) {
         type="button"
         className="pill help-btn"
         aria-haspopup="dialog"
-        onClick={() => { setStep(0); setChoice(true); }}
+        onClick={() => { setStep(0); setRun((r) => r + 1); setChoice(true); }}
       >
         ¿Cómo leer esto?
       </button>
-      {open && createPortal(<TourLayer step={step} setStep={setStep} onClose={close} />, document.body)}
+      {open && createPortal(<TourLayer step={step} setStep={setStep} onClose={close} run={run} />, document.body)}
     </>
   );
 }
 
 interface LayerProps {
   step: number;
+  run: number;
   setStep: (n: number) => void;
   onClose: () => void;
 }
 
-function TourLayer({ step, setStep, onClose }: LayerProps) {
+function TourLayer({ step, setStep, onClose, run }: LayerProps) {
   const layerRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -127,16 +132,26 @@ function TourLayer({ step, setStep, onClose }: LayerProps) {
   const last = step === STEPS.length - 1;
   const anchorName = s?.anchor ?? null;
   const reduce = useSyncExternalStore(subscribeReduce, prefersReduce, serverFalse);
-  // Clip del avatar: el de una vez (saludo o guiño) y, cuando termina, reposo en bucle. restAt = paso en el que ya
-  // terminó el clip de una vez (el cambio lo dispara un timer, no un setState dentro del efecto).
-  const [restAt, setRestAt] = useState<number | null>(null);
-  const firstClip: Clip = welcome ? 'saludo' : last ? 'guino' : 'reposo';
-  const clip: Clip = restAt === step ? 'reposo' : firstClip;
-  // Con prefers-reduced-motion no se anima: primer cuadro fijo del clip del paso.
-  const avatarSrc = reduce ? `/avatar/mati-${firstClip}-0.webp` : `/avatar/mati-${clip}.webp`;
+  // Clip del avatar para este paso. Con prefers-reduced-motion no se anima: cuadro fijo.
+  const clip: Clip = welcome ? 'saludo' : last ? 'cierre' : 'paso';
+  // Los navegadores comparten la animación entre imágenes con la misma URL: una vez que el WebP terminó, otra <img>
+  // con esa URL muestra el último cuadro sin animar. Por eso cada paso (y cada apertura) pide su propia URL (?n=…):
+  // el clip vuelve a arrancar, a costa de bajarlo de nuevo (~300 KB por paso, solo la primera vez en esa sesión).
+  const avatarSrc = reduce ? `/avatar/mati-${clip}-0.webp` : clipUrl(clip, run, step);
+  const avatarKey = avatarSrc;
+  // Doble buffer: la imagen anterior queda visible hasta que la nueva cargó, así el avatar nunca queda en blanco.
+  const [shownKey, setShownKey] = useState<string | null>(null);
+  const avatarKeys = shownKey && shownKey !== avatarKey ? [shownKey, avatarKey] : [avatarKey];
 
   // Al abrir, el foco va al diálogo.
   useEffect(() => { panelRef.current?.focus(); }, []);
+
+  // El clip del paso siguiente se pide mientras se lee este, para que esté al llegar.
+  useEffect(() => {
+    if (reduce || step >= STEPS.length - 1) return;
+    const next = step + 1;
+    document.createElement('img').src = clipUrl(next === STEPS.length - 1 ? 'cierre' : 'paso', run, next);
+  }, [step, reduce, run]);
 
   // Si el botón que tenía el foco desaparece o se deshabilita (Empezar, Anterior en el paso 1), pasa al principal.
   useEffect(() => {
@@ -223,30 +238,33 @@ function TourLayer({ step, setStep, onClose }: LayerProps) {
     };
   }, [anchorName]);
 
-  useEffect(() => {
-    if (reduce || firstClip === 'reposo') return;
-    const t = setTimeout(() => setRestAt(step), ONCE_MS[firstClip]);
-    return () => clearTimeout(t);
-  }, [step, firstClip, reduce]);
-
   return (
     <div ref={layerRef} className="tour-layer" data-welcome={welcome ? '' : undefined}>
       <div ref={boxRef} className={`tour-box${anchorName === 'brecha' ? ' gap' : ''}`} aria-hidden="true" data-testid="tour-box" />
       <div ref={cardRef} className="tour-card">
         <div ref={avatarRef} className="tour-av" aria-hidden="true" data-testid="tour-avatar">
-          {/* key: al cambiar de clip se monta una imagen nueva, así el WebP animado arranca desde el principio. */}
-          <Image
-            key={avatarSrc}
-            className="tour-av-img"
-            src={avatarSrc}
-            alt=""
-            width={360}
-            height={270}
-            unoptimized
-            loading="eager"
-            draggable={false}
-            onLoad={() => { if (avatarRef.current) avatarRef.current.dataset.ready = ''; }}
-          />
+          {/* key: cada paso monta una imagen nueva, así el WebP animado arranca desde el principio. La nueva queda
+              oculta debajo de la anterior hasta que carga; ahí pasa a ser la visible y la anterior se desmonta. */}
+          {avatarKeys.map((k) => (
+            <Image
+              key={k}
+              className="tour-av-img"
+              data-shown={k === (shownKey ?? avatarKey) ? '' : undefined}
+              src={k}
+              alt=""
+              width={520}
+              height={327}
+              unoptimized
+              loading="eager"
+              draggable={false}
+              onLoad={(e) => {
+                if (avatarRef.current) avatarRef.current.dataset.ready = '';
+                if (k !== avatarKey) return;
+                // Se muestra recién cuando el primer cuadro está decodificado: cargada no alcanza para pintarla.
+                e.currentTarget.decode().catch(() => {}).finally(() => setShownKey(k));
+              }}
+            />
+          ))}
         </div>
         <div
           ref={panelRef}

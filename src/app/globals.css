@@ -321,9 +321,12 @@ html[data-intro='open'] .page { animation: page-approach 800ms cubic-bezier(0.2,
 /* Tarjeta = Mati + globo. Celular: pegada abajo, con lugar para Mati debajo del globo. */
 .tour-card { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 12px 118px; }
 
-.tour-av { position: absolute; left: 4px; bottom: 0; width: 168px; height: 126px; pointer-events: none; }
+/* Los clips son de 520×327 (1,59:1): las cajas tienen esa proporción para que Mati se vea al mismo alto que antes. */
+.tour-av { position: absolute; left: 4px; bottom: 0; width: 200px; height: 126px; pointer-events: none; }
 .tour-av:not([data-ready]) { visibility: hidden; } /* hasta que cargue la imagen */
-.tour-av-img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: left bottom; user-select: none; }
+/* Dos imágenes apiladas al cambiar de paso: la nueva queda oculta hasta que carga (Tutorial.tsx, doble buffer). */
+.tour-av-img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; object-position: left bottom; user-select: none; }
+.tour-av-img:not([data-shown]) { visibility: hidden; }
 
 /* Globo de cómic: crema con contorno oscuro en los dos temas (el contorno lo dibujan las sombras, así rodea también
    la colita). Adentro se fijan los colores del tema claro para que el texto y los botones se lean sobre crema. */
@@ -336,7 +339,7 @@ html[data-intro='open'] .page { animation: page-approach 800ms cubic-bezier(0.2,
   filter: drop-shadow(2px 0 0 #1f1b1a) drop-shadow(-2px 0 0 #1f1b1a) drop-shadow(0 2px 0 #1f1b1a) drop-shadow(0 -2px 0 #1f1b1a) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28));
 }
 /* Colita: en celular sale de abajo a la izquierda, hacia la cabeza de Mati. */
-.tour-panel::after { content: ''; position: absolute; left: 70px; bottom: -17px; width: 28px; height: 18px; background: inherit; clip-path: polygon(0 0, 100% 0, 18% 100%); }
+.tour-panel::after { content: ''; position: absolute; left: 96px; bottom: -17px; width: 28px; height: 18px; background: inherit; clip-path: polygon(0 0, 100% 0, 18% 100%); }
 .tour-head { margin: 0; font-size: 12px; color: var(--fg-3); }
 .tour-bubble { margin: 0; font-size: 15px; line-height: 1.45; color: var(--fg); }
 .tour-text { margin: 6px 0 0; font-size: 15px; line-height: 1.45; color: var(--fg); }
@@ -349,7 +352,7 @@ html[data-intro='open'] .page { animation: page-approach 800ms cubic-bezier(0.2,
 .tour-btn.ghost { border-color: transparent; color: var(--fg-2); padding-left: 4px; }
 .tour-btn.primary { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
 .tour-btn:disabled { opacity: 0.4; cursor: default; }
-.tour-layer[data-welcome] .tour-av { width: 184px; height: 138px; }
+.tour-layer[data-welcome] .tour-av { width: 220px; height: 138px; }
 .tour-layer[data-welcome] .tour-card { padding-bottom: 128px; }
 
 @media (min-width: 900px) {
@@ -357,10 +360,10 @@ html[data-intro='open'] .page { animation: page-approach 800ms cubic-bezier(0.2,
   .tour-card[data-place='anchor'] { bottom: auto; transform: none; }
 
   /* Mati al costado del globo; la base de la imagen se funde para que no se vea el corte. */
-  .tour-av { position: relative; left: auto; bottom: auto; flex: none; width: 216px; height: 162px;
+  .tour-av { position: relative; left: auto; bottom: auto; flex: none; width: 258px; height: 162px;
     -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); }
   .tour-av-img { object-position: center bottom; }
-  .tour-layer[data-welcome] .tour-av { width: 288px; height: 216px; }
+  .tour-layer[data-welcome] .tour-av { width: 344px; height: 216px; }
 
   .tour-panel { width: 360px; }
   .tour-layer[data-welcome] .tour-panel { width: 340px; padding: 18px 20px; }
