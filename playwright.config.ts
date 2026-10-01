@@ -8,6 +8,8 @@ export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 30_000,
   retries: 0,
+  // Un worker (01/10): con 2, la Mac se quedaba sin CPU y el test del tutorial fallaba al azar. Tarda lo mismo (testing.md §3).
+  workers: 1,
   reporter: 'list',
   use: { baseURL: `http://localhost:${PORT}`, trace: 'retain-on-failure' },
   projects: [
