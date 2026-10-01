@@ -57,7 +57,10 @@ export function normalizeHistorico(raw: unknown, valueField: 'venta' | 'valor'):
     if (!isRecord(item) || !isIsoDate(item.fecha) || typeof item[valueField] !== 'number') continue;
     points.push({ date: item.fecha, value: item[valueField] as number });
   }
-  if (points.length === 0) return fail('empty', 'Histórico sin puntos válidos');
+  // Lista vacía = el proveedor no tiene datos (fetchJson ya la corta antes; esto queda por las dudas).
+  // Lista con elementos pero ningún punto válido = cambió el formato: es un error, no "sin datos" (hallazgo #8 de QA).
+  if (raw.length === 0) return fail('empty', 'Histórico vacío');
+  if (points.length === 0) return fail('invalid', 'Histórico: ningún elemento con el formato esperado');
   return ok(points);
 }
 

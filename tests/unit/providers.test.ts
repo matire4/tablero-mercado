@@ -53,8 +53,11 @@ describe('ArgentinaDatos', () => {
     expect(b.ok && b.data[b.data.length - 1]).toEqual({ date: '2026-09-28', value: 1560 });
     expect(r.ok && r.data[r.data.length - 1]).toEqual({ date: '2026-09-25', value: 609 });
   });
-  it('histórico sin puntos válidos → empty', () => {
-    expect(normalizeHistorico([{ fecha: 'ayer', venta: 1 }], 'venta')).toMatchObject({ ok: false, error: { kind: 'empty' } });
+  it('histórico con elementos pero sin puntos válidos → invalid (formato cambiado, no "sin datos")', () => {
+    expect(normalizeHistorico([{ fecha: 'ayer', venta: 1 }], 'venta')).toMatchObject({ ok: false, error: { kind: 'invalid' } });
+  });
+  it('histórico como lista vacía → empty', () => {
+    expect(normalizeHistorico([], 'venta')).toMatchObject({ ok: false, error: { kind: 'empty' } });
   });
   it('feriados → lista de fechas', () => {
     const f = normalizeFeriados(feriados);

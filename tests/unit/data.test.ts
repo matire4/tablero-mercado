@@ -103,6 +103,10 @@ describe('getHistory en modo real con MSW (H0-6)', () => {
     conBlue(() => new HttpResponse(null, { status: 500 }));
     expect(await getHistory('blue', 30, real)).toMatchObject({ ok: false, error: { kind: 'upstream' } });
   });
+  it('ArgentinaDatos cambia el formato (renombra fecha) → error invalid, no "sin datos" (hallazgo #8)', async () => {
+    conBlue(() => HttpResponse.json([{ casa: 'blue', compra: 1, venta: 2, fechaRenombrada: '2026-09-28' }]));
+    expect(await getHistory('blue', 30, real)).toMatchObject({ ok: false, error: { kind: 'invalid' } });
+  });
 });
 
 describe('getNews en modo mock', () => {
