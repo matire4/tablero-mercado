@@ -126,7 +126,8 @@ export async function getQuotes(cfg: DataConfig = configFromEnv()): Promise<Quot
 export async function getHistory(asset: AssetId, range: 7 | 30 | 90, cfg: DataConfig = configFromEnv()): Promise<Result<HistoryResponse>> {
   const now = nowFor(cfg);
   const today = toArgentinaTime(now).date;
-  const desde = addDays(today, -range);
+  // Ventana de `range` fechas contando hoy: 7 d = hoy y los 6 días anteriores (antes incluía uno de más).
+  const desde = addDays(today, -(range - 1));
   const recorte = (serie: HistoryPoint[]) => serie.filter((p) => p.date >= desde && p.date <= today);
 
   const needsOficial = PARALELOS.includes(asset);

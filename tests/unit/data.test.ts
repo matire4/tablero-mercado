@@ -66,9 +66,11 @@ describe('getHistory en modo mock', () => {
     expect(o.ok && o.data.gapSeries).toBeNull();
     expect(rp.ok && rp.data.gapSeries).toBeNull();
   });
-  it('rango 7 en viernes-cerrado recorta con la fecha del fixture', async () => {
+  it('rango 7 en viernes-cerrado recorta con la fecha del fixture: 7 fechas, del 19/09 al 25/09', async () => {
     const r = await getHistory('mep', 7, mock('viernes-cerrado'));
-    expect(r.ok && r.data.series[r.data.series.length - 1].date).toBe('2026-09-25');
+    if (!r.ok) throw new Error('se esperaba ok');
+    expect(r.data.series[0].date).toBe('2026-09-19');
+    expect(r.data.series[r.data.series.length - 1].date).toBe('2026-09-25');
   });
 });
 
