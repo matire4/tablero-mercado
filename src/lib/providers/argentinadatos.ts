@@ -49,8 +49,17 @@ export async function fetchRiesgoUltimo(): Promise<Result<Quote>> {
 
 // ---------- Históricos ----------
 
-/** Serie de riesgo país ({ valor, fecha }) o de dólar ({ compra, venta, fecha }) → HistoryPoint[]. */
-export function normalizeHistorico(raw: unknown, valueField: 'venta' | 'valor'): Result<HistoryPoint[]> {
+/** Serie normalizada + cuántos elementos del proveedor se descartaron por formato (hallazgo #9 de QA). */
+export interface Historico {
+  points: HistoryPoint[];
+  skipped: number;
+}
+
+/**
+ * Serie de riesgo país ({ valor, fecha }) o de dólar ({ compra, venta, fecha }) → puntos + descartados.
+ * `skipped` cuenta sobre TODA la lista del proveedor, no sobre un rango: un elemento inválido puede no tener fecha legible.
+ */
+export function parseHistorico(raw: unknown, valueField: 'venta' | 'valor'): Result<Historico> {
   if (!Array.isArray(raw)) return fail('invalid', 'Histórico: se esperaba una lista');
   const points: HistoryPoint[] = [];
   for (const item of raw) {
@@ -61,7 +70,13 @@ export function normalizeHistorico(raw: unknown, valueField: 'venta' | 'valor'):
   // Lista con elementos pero ningún punto válido = cambió el formato: es un error, no "sin datos" (hallazgo #8 de QA).
   if (raw.length === 0) return fail('empty', 'Histórico vacío');
   if (points.length === 0) return fail('invalid', 'Histórico: ningún elemento con el formato esperado');
-  return ok(points);
+  return ok({ points, skipped: raw.length - points.length });
+}
+
+/** Igual que `parseHistorico`, solo los puntos: para quien no necesita el conteo (tests de formato, fixtures). */
+export function normalizeHistorico(raw: unknown, valueField: 'venta' | 'valor'): Result<HistoryPoint[]> {
+  const res = parseHistorico(raw, valueField);
+  return res.ok ? ok(res.data.points) : res;
 }
 
 export function historicoUrl(asset: AssetId): string {
@@ -71,9 +86,9 @@ export function historicoUrl(asset: AssetId): string {
 }
 
 /** Trae la serie COMPLETA (0,4-0,5 MB) con cache de 24 h. El recorte por fecha lo hace lib/data.ts. */
-export async function fetchHistorico(asset: AssetId): Promise<Result<HistoryPoint[]>> {
+export async function fetchHistorico(asset: AssetId): Promise<Result<Historico>> {
   const res = await fetchJson<unknown>(historicoUrl(asset), { revalidate: REVALIDATE_HISTORICO });
-  return res.ok ? normalizeHistorico(res.data, asset === 'riesgo-pais' ? 'valor' : 'venta') : res;
+  return res.ok ? parseHistorico(res.data, asset === 'riesgo-pais' ? 'valor' : 'venta') : res;
 }
 
 // ---------- Feriados ----------

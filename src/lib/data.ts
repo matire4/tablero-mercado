@@ -9,7 +9,7 @@ import { getMarketStatus, toArgentinaTime } from './market-status';
 import { fail, ok } from './result';
 import type { AssetId, HistoryPoint, HistoryResponse, MarketStatus, NewsResponse, Quote, QuotesResponse, Result } from './types';
 import { fetchDolares, normalizeDolares } from './providers/dolarapi';
-import { fetchFeriados, fetchHistorico, fetchRiesgoUltimo, normalizeHistorico, normalizeRiesgoUltimo } from './providers/argentinadatos';
+import { fetchFeriados, fetchHistorico, fetchRiesgoUltimo, normalizeRiesgoUltimo, parseHistorico, type Historico } from './providers/argentinadatos';
 import { fetchNews, mergeNews, normalizeNews } from './providers/news';
 
 import feriadosFixture from './fixtures/feriados.json';
@@ -74,8 +74,8 @@ async function loadHolidays(cfg: DataConfig, now: Date): Promise<{ holidays: str
   return res.ok ? { holidays: res.data, source: 'live' } : fromFixture;
 }
 
-async function loadHistorico(cfg: DataConfig, asset: AssetId): Promise<Result<HistoryPoint[]>> {
-  if (cfg.mock) return normalizeHistorico(HISTORY_FIXTURES[asset], asset === 'riesgo-pais' ? 'valor' : 'venta');
+async function loadHistorico(cfg: DataConfig, asset: AssetId): Promise<Result<Historico>> {
+  if (cfg.mock) return parseHistorico(HISTORY_FIXTURES[asset], asset === 'riesgo-pais' ? 'valor' : 'venta');
   return fetchHistorico(asset);
 }
 
@@ -97,7 +97,7 @@ export async function getQuotes(cfg: DataConfig = configFromEnv()): Promise<Quot
     loadQuotesRaw(cfg),
     Promise.all(ASSETS.map((a) => loadHistorico(cfg, a))),
   ]);
-  const historicoDe = Object.fromEntries(ASSETS.map((a, i) => [a, historicos[i]])) as Record<AssetId, Result<HistoryPoint[]>>;
+  const historicoDe = Object.fromEntries(ASSETS.map((a, i) => [a, historicos[i]])) as Record<AssetId, Result<Historico>>;
 
   const oficial = quotes.oficial;
   for (const asset of ASSETS) {
@@ -107,7 +107,7 @@ export async function getQuotes(cfg: DataConfig = configFromEnv()): Promise<Quot
     // Variación del día: contra la última entrada del histórico anterior a la fecha del dato (lib/change.ts).
     const hist = historicoDe[asset];
     const date = q.data.updatedAtHasTime ? toArgentinaTime(new Date(q.data.updatedAt)).date : q.data.updatedAt.slice(0, 10);
-    q.data.changePct = hist.ok ? calcChangePct({ date, value: q.data.sell }, hist.data) : null;
+    q.data.changePct = hist.ok ? calcChangePct({ date, value: q.data.sell }, hist.data.points) : null;
 
     // Brecha (feature 1): solo paralelos, solo si el oficial vino.
     if (PARALELOS.includes(asset)) {
@@ -134,21 +134,25 @@ export async function getHistory(asset: AssetId, range: 7 | 30 | 90, cfg: DataCo
   const [{ holidays, source }, serie, oficial] = await Promise.all([
     loadHolidays(cfg, now),
     loadHistorico(cfg, asset),
-    needsOficial ? loadHistorico(cfg, 'oficial') : Promise.resolve(fail<HistoryPoint[]>('empty', 'no aplica')),
+    needsOficial ? loadHistorico(cfg, 'oficial') : Promise.resolve(fail<Historico>('empty', 'no aplica')),
   ]);
   const market = getMarketStatus(now, holidays, source);
   // Serie vacía del proveedor = "sin datos para este período" (H0-6), no error. Los demás errores siguen siendo error.
   // fetchJson no cambia: para cotizaciones, vacío sigue siendo error (H0-5).
   if (!serie.ok) {
-    return serie.error.kind === 'empty' ? ok({ asset, range, series: [], gapSeries: null, gapUnavailable: false, market }) : serie;
+    return serie.error.kind === 'empty' ? ok({ asset, range, series: [], gapSeries: null, gapUnavailable: false, skippedPoints: 0, market }) : serie;
   }
 
-  const series = recorte(serie.data);
-  const gapSeries = needsOficial && oficial.ok ? brechaSeries(series, recorte(oficial.data)) : null;
+  const series = recorte(serie.data.points);
+  const gapSeries = needsOficial && oficial.ok ? brechaSeries(series, recorte(oficial.data.points)) : null;
   // Paralelo con el oficial en error: la brecha aplica pero falta. El gráfico lo dice en vez de esconder el panel (hallazgo #10).
   const gapUnavailable = needsOficial && !oficial.ok;
 
-  return ok({ asset, range, series, gapSeries, gapUnavailable, market });
+  // Elementos del proveedor descartados por formato (en toda la serie): se avisa en el log y en el gráfico (hallazgo #9).
+  const skippedPoints = serie.data.skipped;
+  if (skippedPoints > 0) console.warn(`[history] ${asset}: ${skippedPoints} puntos descartados por formato`);
+
+  return ok({ asset, range, series, gapSeries, gapUnavailable, skippedPoints, market });
 }
 
 export type { NewsResponse };

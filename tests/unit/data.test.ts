@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { configFromEnv, getHistory, getNews, getQuotes, type DataConfig } from '../../src/lib/data';
@@ -116,6 +116,21 @@ describe('getHistory en modo real con MSW (H0-6)', () => {
     );
     const r = await getHistory('blue', 30, real);
     expect(r).toMatchObject({ ok: true, data: { gapSeries: null, gapUnavailable: true } });
+  });
+  it('blue con la mitad de los venta en null → ok, skippedPoints > 0 y una línea [history] en el log (hallazgo #9)', async () => {
+    const roto = historyBlue.map((p, i) => (i % 2 === 0 ? { ...p, venta: null } : p));
+    conBlue(() => HttpResponse.json(roto));
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const r = await getHistory('blue', 30, real);
+      expect(r.ok).toBe(true);
+      if (!r.ok) return;
+      expect(r.data.skippedPoints).toBe(Math.ceil(historyBlue.length / 2));
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toBe(`[history] blue: ${r.data.skippedPoints} puntos descartados por formato`);
+    } finally {
+      warn.mockRestore();
+    }
   });
   it('oficial: la brecha no aplica → gapUnavailable: false (H1-3)', async () => {
     server.use(

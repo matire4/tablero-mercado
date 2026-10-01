@@ -133,3 +133,23 @@ test('H1-2 · histórico del oficial caído: el gráfico de un paralelo dice "Br
   await expect(chart.locator('.line.price')).toHaveCount(1);
   await expect(chart.getByText('Brecha no disponible para este período')).toHaveCount(0);
 });
+
+test('Histórico con puntos descartados por formato: el gráfico lo avisa sin inventar cuántos días faltan (hallazgo #9)', async ({ page }) => {
+  await page.route('**/api/history/blue**', async (route) => {
+    const res = await route.fetch();
+    const body = await res.json();
+    body.data.skippedPoints = 3;
+    await route.fulfill({ response: res, json: body });
+  });
+  await page.goto('/');
+
+  const chart = page.getByRole('region', { name: 'Evolución' });
+  await expect(chart.getByText('Algunos datos del proveedor no se pudieron leer y no se muestran')).toBeVisible();
+  await expect(chart.locator('.line.price')).toHaveCount(1);
+  await expect(chart.getByRole('alert')).toHaveCount(0);
+
+  // Otro activo sin puntos descartados: sin aviso.
+  await chart.getByRole('tablist', { name: 'Activo' }).getByRole('tab', { name: 'MEP' }).click();
+  await expect(chart.locator('.line.price')).toHaveCount(1);
+  await expect(chart.getByText('Algunos datos del proveedor no se pudieron leer y no se muestran')).toHaveCount(0);
+});

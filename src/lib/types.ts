@@ -54,6 +54,11 @@ export interface HistoryResponse {
    * Distingue ese caso del `gapSeries: null` de oficial y riesgo país, donde la brecha no aplica (hallazgo #10 de QA).
    */
   gapUnavailable: boolean;
+  /**
+   * Elementos de la serie del proveedor descartados por formato (en toda la serie, no solo en el rango). Con `> 0` la
+   * respuesta sigue siendo `ok` y el gráfico avisa que faltan datos; si no queda ninguno válido es `invalid` (hallazgos #8 y #9).
+   */
+  skippedPoints: number;
   market: MarketStatus;
 }
 

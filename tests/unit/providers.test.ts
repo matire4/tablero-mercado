@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { normalizeDolares } from '../../src/lib/providers/dolarapi';
-import { normalizeFeriados, normalizeHistorico, normalizeRiesgoUltimo } from '../../src/lib/providers/argentinadatos';
+import { normalizeFeriados, normalizeHistorico, normalizeRiesgoUltimo, parseHistorico } from '../../src/lib/providers/argentinadatos';
 import { assignTopic, dedupeByTitle, fetchNews, GNEWS_URL, normalizeNews, redactKey } from '../../src/lib/providers/news';
 import type { NewsItem } from '../../src/lib/types';
 import dolares from '../../src/lib/fixtures/raw/dolarapi-dolares.json';
@@ -58,6 +58,17 @@ describe('ArgentinaDatos', () => {
   });
   it('histórico como lista vacía → empty', () => {
     expect(normalizeHistorico([], 'venta')).toMatchObject({ ok: false, error: { kind: 'empty' } });
+  });
+  it('histórico con algunos elementos inválidos → ok con los válidos y cuántos se descartaron (hallazgo #9)', () => {
+    const raw = [
+      { fecha: '2026-09-27', venta: 1550 },
+      { fecha: '2026-09-28', venta: null },
+      { fecha: '2026-09-29', venta: 1560 },
+    ];
+    expect(parseHistorico(raw, 'venta')).toEqual({
+      ok: true,
+      data: { points: [{ date: '2026-09-27', value: 1550 }, { date: '2026-09-29', value: 1560 }], skipped: 1 },
+    });
   });
   it('feriados → lista de fechas', () => {
     const f = normalizeFeriados(feriados);
