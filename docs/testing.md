@@ -104,7 +104,7 @@ El e2e siempre corre en modo mock (`playwright.config.ts` fuerza `USE_MOCK_DATA=
 | Caso 1 en la URL pública (capturas escritorio y celular) | Mati | Pendiente |
 | Lighthouse (Accessibility y Performance, celular) sobre la URL pública | Mati | Pendiente |
 | Recorrido con teclado: Tab por tarjetas, tabs del gráfico, "Ver como tabla", links de noticias | Mati | Pendiente |
-| Plan B: activar modo mock en Vercel y verificar el banner en la URL pública | Cierre (fase demo) | Pendiente |
+| Plan B: activar modo mock en Vercel y verificar el banner en la URL pública | Mati + Tech Lead | **Hecho (01/10).** URL fija de preview (rama `demo-mock`, variables de Preview solo para esa rama). Ventana privada: abre sin login, con el banner y datos del fixture; `/api/quotes` idéntico al mock local (`diff` vacío). Producción sigue en modo real (diff contra el mock: fechas del 01/10). Deploy en 14 s. Activar el mock en producción cambiando la variable no sirve: Vercel exige redeploy. Detalle en `demo.md`, "Plan B". |
 
 ---
 
