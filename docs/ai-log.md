@@ -244,3 +244,27 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 - **`redactKey` en el log de GNews:** el pedido era loguear el `message` del error. El Tech Lead marcó un caso teórico en el que ese mensaje podría traer la URL con la key (un error de Node al armar la request). Mati eligió taparla: `apikey=…` → `apikey=***`, con test.
 - **Tests en una copia aparte:** el `node_modules` de Mati es de macOS y la shell del asistente es Linux. Los unitarios se corrieron en una copia del repo con `npm ci` propio. El e2e lo corre Mati.
 - **Hallazgo #3 documentado en riesgos.md** por el Tech Lead, con 5 min por encima del presupuesto de 45, aprobado por Mati.
+
+## 2026-10-01 · PO
+**Qué propuso:** la línea del avatar para producto.md decía "no habla ni señala", tomada de la copia del proyecto del 29/09.
+**Por qué estaba mal:** el repo ya tenía el avatar con el video de Kling del 01/10 (saluda, señala en cada paso, guiño al cierre). El PO escribió desde una copia desactualizada.
+**Cómo lo detecté:** al conectar la carpeta del repo para commitear, el PO leyó CLAUDE.md y estimaciones.md actuales antes de escribir.
+**Qué hice:** línea corregida antes del commit (`b26808a`); el proyecto de Claude se sincronizó desde el repo para que no vuelva a pasar.
+
+## 2026-10-01 · Tech Lead
+**Qué propuso:** "agregá las variables de entorno" para el deploy de preview del plan B, sin saber que ya existían como "Production and Preview" y que el panel de Vercel no deja restringirlas a una rama.
+**Por qué estaba mal:** no se podían agregar con el mismo nombre; había que crear variables nuevas atadas a la rama.
+**Cómo lo detecté:** el panel rechazó el alta; se resolvió con la CLI (`vercel env add <nombre> preview demo-mock`).
+**Qué hice:** variables por rama; documentado en demo.md "Plan B".
+
+## 2026-10-01 · Tech Lead
+**Qué propuso:** un comando para copiar y pegar con `<URL>` como placeholder.
+**Por qué estaba mal:** zsh tomó `<` y `>` como redirecciones y el comando falló.
+**Cómo lo detecté:** error en la terminal de Mati.
+**Qué hice:** placeholders sin ángulos en comandos; lección menor pero real.
+
+## 2026-10-01 · Tech Lead
+**Qué propuso:** dio por hecho que el push de la rama `demo-mock` iba a crear el deploy de preview.
+**Por qué estaba mal:** no lo creó; hubo que hacerlo a mano desde Deployments → Create Deployment.
+**Cómo lo detecté:** la URL de preview seguía sirviendo el deploy anterior.
+**Qué hice:** deploy manual; queda anotado en demo.md que tras cada push a `demo-mock` hay que crearlo a mano o verificar que exista.
