@@ -162,3 +162,25 @@ test('Tutorial · la primera vez se abre solo con la bienvenida; Empezar va al p
   await expect(page.locator('.card .card-value')).toHaveCount(5);
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
+
+test('Tutorial · con prefers-reduced-motion no se pide ningún clip animado, solo los cuadros fijos (hallazgo #12)', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const clips: string[] = [];
+  page.on('request', (r) => { if (r.url().includes('/avatar/')) clips.push(new URL(r.url()).pathname); });
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('tutorial-reset')) return;
+    sessionStorage.setItem('tutorial-reset', '1');
+    localStorage.removeItem('tutorial-seen');
+  });
+  await page.reload();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('Hola, soy Mati.');
+  await dialog.getByRole('button', { name: 'Empezar' }).click();
+  for (const n of [2, 3, 4]) {
+    await dialog.getByRole('button', { name: 'Siguiente' }).click();
+    await expect(dialog).toContainText(`Paso ${n} de 4`);
+  }
+  await expect(page.getByTestId('tour-avatar').locator('img').first()).toBeVisible();
+  expect(clips.length).toBeGreaterThan(0);
+  expect(clips.filter((p) => !/-0\.webp$/.test(p))).toEqual([]);
+});

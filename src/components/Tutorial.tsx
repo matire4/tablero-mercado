@@ -84,10 +84,11 @@ export function Tutorial({ ready }: { ready: boolean }) {
 
   const open = choice ?? (ready && intro && firstVisit);
 
-  // La primera vez, apenas hay datos, se pide el saludo (~600 KB) para que no aparezca a medio cargar. El resto
-  // de los clips carga mientras se lee la bienvenida.
+  // La primera vez, apenas hay datos, se pide el saludo (~470 KB) para que no aparezca a medio cargar. El resto
+  // de los clips carga mientras se lee la bienvenida. Con prefers-reduced-motion no se pide: se muestra el cuadro
+  // fijo (-0.webp) y el clip animado nunca se reproduciría (hallazgo #12).
   useEffect(() => {
-    if (!ready || !firstVisit) return;
+    if (!ready || !firstVisit || prefersReduce()) return;
     fetch('/avatar/mati-saludo.webp').catch(() => { /* decorativo: si falla, el avatar aparece cuando cargue */ });
   }, [ready, firstVisit]);
 
