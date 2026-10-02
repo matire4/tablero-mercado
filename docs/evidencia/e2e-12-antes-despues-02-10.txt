@@ -1,0 +1,25 @@
+Verificación QA del hallazgo #12 (02/10/2026)
+Clon limpio de GitHub (main = 37f7cb7, incluye db46eb5), npm ci, Chromium 1194 (playwright.local.config.ts, sin commitear).
+
+1) Código congelado (db46eb5):
+$ npx playwright test -g "prefers-reduced-motion"
+  ✓ [escritorio] tablero.spec.ts:166 Tutorial · con prefers-reduced-motion no se pide ningún clip animado, solo los cuadros fijos (hallazgo #12)
+  ✓ [celular]    tablero.spec.ts:166 (mismo test) (2.2s)
+  2 passed (12.3s)
+
+2) src/ del commit anterior (2e39607 = db46eb5^), mismo test:
+$ git checkout db46eb5^ -- src/ && npx playwright test -g "prefers-reduced-motion"
+  Error: expect(received).toEqual(expected)
+    - Array []
+    + Array [
+    +   "/avatar/mati-saludo.webp",
+    + ]
+    > 185 |   expect(clips.filter((p) => !/-0\.webp$/.test(p))).toEqual([]);
+  2 failed: [escritorio] y [celular]
+$ git checkout HEAD -- src/   (restaurado; git status sin cambios en src/)
+
+3) Suite completa sobre el código congelado:
+$ npm run check     -> Test Files 10 passed, Tests 98 passed
+$ npx playwright test -> 29 passed, 1 skipped (1.0m)
+
+Tamaños en public/avatar/ (bytes): mati-saludo.webp 474194, mati-paso.webp 301698, mati-cierre.webp 160994, cada -0.webp 11748.

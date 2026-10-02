@@ -94,12 +94,12 @@ Basado en un relevamiento rápido de lo que publican los sitios de referencia ar
 Alcance de interfaz aceptado con su costo (3-4 h, ver `estimaciones.md`), a partir de un mockup aprobado. Motivo: el tablero es la cara del producto frente a un gerente no técnico; una interfaz cuidada es parte de "bien contado", no un extra. Incluye:
 
 - Tema claro y oscuro que sigue la preferencia del sistema, con botón para cambiarlo y elección guardada en el navegador.
-- Animación de entrada de 0,8 s, solo la primera vez por sesión, con el tablero ya cargado detrás: no bloquea los datos.
+- Animación de entrada ("puertas") de ~2,4 s en total, solo la primera vez por sesión, con el tablero ya cargado detrás: no bloquea los datos *(se aprobó con 0,8 s; se alargó el 29/09 al probarla porque no llegaba a registrarse)*.
 - Tarjetas que entran escalonadas.
 - El gráfico se dibuja al cambiar de activo o de rango.
 - Tabla accesible "Ver como tabla" debajo del gráfico.
 - Tutorial de 4 pasos (valor y hora · brecha · mercado cerrado · noticias con demora) que se abre solo la primera vez o desde el botón "¿Cómo leer esto?".
-- Avatar en el tutorial *(agregado el 29/09, 3,5-4,5 h en dos vueltas, ver `estimaciones.md`)*: el tutorial lo guía un avatar animado (clips cortos del Memoji de Mati, sin fondo, con globo de cómic) que saluda en una bienvenida con Empezar / Saltar y acompaña cada paso. Se eligió sobre una mascota neutra para darle entidad en la demo. No habla ni señala; los textos van en el globo, en primera persona y sin recomendar. En un banco se reemplaza por su mascota o se saca sin tocar la lógica. Con `prefers-reduced-motion` queda en un cuadro fijo. Peso aproximado 1 MB, solo la primera vez que se abre el tutorial.
+- Avatar en el tutorial *(agregado el 29/09 y completado el 01/10, 5-6,5 h en tres vueltas, ver `estimaciones.md`)*: el tutorial lo guía un avatar animado del Memoji de Mati, sin fondo y con globo de cómic. Saluda en una bienvenida con Empezar / Saltar, señala hacia el globo en cada paso y cierra con un guiño en el último. Se eligió sobre una mascota neutra para darle entidad en la demo. Los textos van en el globo, en primera persona y sin recomendar. En un banco se reemplaza por su mascota o se saca sin tocar la lógica. Con `prefers-reduced-motion` queda en un cuadro fijo y no descarga el clip animado (hallazgo #12). Peso: ~300 KB por paso, hasta ~1,4 MB si se recorren los 4, solo la primera vez (riesgos.md fila 10).
 
 Todo movimiento respeta `prefers-reduced-motion`. Siguen vigentes: sin flechas ni verde/rojo en variación y brecha; números en formato es-AR.
 
@@ -137,14 +137,14 @@ Por qué se especifica y no se implementa: 5-7 h, y depende de un histórico por
 Criterios de aceptación:
 
 1. **Given** las fuentes responden, **when** abro el tablero, **then** veo 5 tarjetas (blue, MEP, oficial, tarjeta, riesgo país) con valor, variación del día (calculada contra el último dato anterior del histórico; un lunes, contra el cierre del viernes), "actualizado hace X min", y el disclaimer de no recomendación visible sin scroll.
-2. **Given** las fuentes responden, **when** toco una tarjeta, **then** el gráfico muestra la serie de venta de ese activo con selector 7 / 30 / 90 días.
+2. **Given** las fuentes responden, **when** elijo un activo en el selector del gráfico, **then** el gráfico muestra la serie de venta de ese activo con selector 7 / 30 / 90 días. *(Precisado el 02/10 en QA, hallazgo #14: la versión del 26/09 decía "toco una tarjeta"; las tarjetas no son interactivas, el activo se elige en el gráfico.)*
 3. **Given** las fuentes responden, **when** miro el tablero de noticias, **then** cada nota tiene título, fuente, fecha, idioma y link, y pertenece a los temas fijos definidos.
 4. **Given** es sábado, domingo o feriado nacional, **when** abro el tablero, **then** cada tarjeta de dólar muestra el último valor conocido con "Último cierre: día y hora", la tarjeta de riesgo país muestra "dato del DD/MM" (el proveedor lo publica sin hora), y no aparece ningún indicador de error. *(Precisado el 30/09 en QA: la versión del 26/09 pedía "último cierre" con hora en las 5 tarjetas, lo que obligaba a inventar una hora para riesgo país. Ver ai-log.md 30/09.)*
 5. **Given** un proveedor falla (timeout, HTTP 429 o respuesta vacía), **when** abro el tablero, **then** las tarjetas de ese proveedor muestran estado de error con leyenda propia, las demás siguen funcionando, y no se muestra ningún valor inventado.
 6. **Given** el histórico de un activo viene vacío, **when** toco su tarjeta, **then** el gráfico muestra "sin datos para este período", distinto del estado de error.
 7. **Given** abro desde un celular, **when** cargo el tablero, **then** las tarjetas se apilan, el gráfico es legible sin zoom y nada queda cortado.
 
-Definition of Done: los 7 criterios verificados a mano en la URL pública y en modo mock; los cuatro estados (carga, error, sin datos, mercado cerrado) visibles y distintos; tests de adaptadores en verde; sin claves en el cliente ni en el historial de git; README permite levantar el proyecto en local.
+Definition of Done: los 7 criterios verificados (a mano en la URL pública o en modo mock, o por e2e en navegador real; la cobertura criterio por criterio está en `testing.md` §2); los cuatro estados (carga, error, sin datos, mercado cerrado) visibles y distintos; tests de adaptadores en verde; sin claves en el cliente ni en el historial de git; README permite levantar el proyecto en local.
 
 ### H1 · Feature 1: brecha cambiaria (se implementa)
 

@@ -249,7 +249,7 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 **Qué propuso:** la línea del avatar para producto.md decía "no habla ni señala", tomada de la copia del proyecto del 29/09.
 **Por qué estaba mal:** el repo ya tenía el avatar con el video de Kling del 01/10 (saluda, señala en cada paso, guiño al cierre). El PO escribió desde una copia desactualizada.
 **Cómo lo detecté:** al conectar la carpeta del repo para commitear, el PO leyó CLAUDE.md y estimaciones.md actuales antes de escribir.
-**Qué hice:** línea corregida antes del commit (`b26808a`); el proyecto de Claude se sincronizó desde el repo para que no vuelva a pasar.
+**Qué hice:** el PO creyó haberla corregido antes del commit `b26808a`, pero el commit llevó la versión vieja (QA lo encontró el 02/10 en la lectura final, ítem 6). Corregida de verdad el 02/10, junto con la duración de la entrada (~2,4 s, no 0,8) y la redacción de H0-2. Lección para el PO: verificar el diff del commit línea por línea, no solo la cantidad de líneas.
 
 ## 2026-10-01 · Tech Lead
 **Qué propuso:** "agregá las variables de entorno" para el deploy de preview del plan B, sin saber que ya existían como "Production and Preview" y que el panel de Vercel no deja restringirlas a una rama.
@@ -268,3 +268,15 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 **Por qué estaba mal:** no lo creó; hubo que hacerlo a mano desde Deployments → Create Deployment.
 **Cómo lo detecté:** la URL de preview seguía sirviendo el deploy anterior.
 **Qué hice:** deploy manual; queda anotado en demo.md que tras cada push a `demo-mock` hay que crearlo a mano o verificar que exista.
+
+## 2026-10-02 · QA
+**Qué propuso:** corrió `git status` en la carpeta conectada, aunque ai-log.md ya tenía la regla (29/09 y 30/09) de no tocar git desde el asistente.
+**Por qué estaba mal:** dejó `.git/index.lock` y `maintenance.lock` huérfanos (después desaparecieron solos). Causa: no leyó ai-log.md antes de empezar.
+**Cómo lo detecté:** lo reportó el propio QA en su resumen.
+**Qué hice:** regla reforzada en el prompt de QA: "no commitees, los commits los hago yo" (y, desde el 01/10, el PO con permiso de borrado para limpiar locks).
+
+## 2026-10-02 · QA
+**Qué propuso:** verificar el #12 a mano en el Network del navegador, y después dijo que no hacía falta porque el e2e ya registra los pedidos de red en un navegador real.
+**Por qué importa:** la segunda es la correcta; la primera era trabajo manual duplicado.
+**Cómo lo detecté:** el QA se corrigió solo.
+**Qué hice:** verificación por e2e, con la evidencia de que falla con el código anterior (`evidencia/e2e-12-antes-despues-02-10.txt`).

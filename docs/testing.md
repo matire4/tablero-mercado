@@ -3,22 +3,28 @@
 Plan, cobertura contra los criterios de aceptación y casos de prueba documentados.
 Escrito por el rol QA (30/09/2026), que no participó del desarrollo. La definición de terminado son los criterios Given/When/Then de `docs/producto.md`.
 
-**Estado al 01/10:** 98 tests unitarios y 27 e2e en verde (+1 salteado a propósito), en la Mac de Mati (e2e con un worker, ver §3) y en un clon limpio. `npm run check` (tipos + lint + unitarios) y `npm run test:e2e`.
+**Estado al 02/10:** sobre el código congelado (`db46eb5`), 98 tests unitarios y 29 e2e en verde, más 1 salteado a propósito (H0-7 solo aplica al viewport de celular), en un clon limpio (§7). `npm run check` (tipos + lint + unitarios) y `npm run test:e2e`. Pruebas manuales hechas: casos 1 a 3, Lighthouse en celular y recorrido con teclado (§5).
 
 ---
 
 ## 1. Plan por tipo de prueba
 
-Presupuesto de QA: 3 h. Al arrancar QA ya existían 85 unitarios y 15 e2e escritos durante el desarrollo, así que el trabajo fue **encontrar huecos, no sumar cobertura**.
+Presupuesto de QA: 3 h para la primera fase y 1,5 h para el cierre. Al arrancar QA ya existían 85 unitarios y 15 e2e escritos durante el desarrollo, así que el trabajo fue **encontrar huecos, no sumar cobertura**. La columna "Qué se hizo" dice lo que se ejecutó de verdad, no lo planeado.
 
-| Tipo | Decisión | Por qué |
-|---|---|---|
-| Unitarias (Vitest + MSW) | Automatizado | Adaptadores, normalización y `fetchJson` con MSW simulando timeout, HTTP 429, 500, respuesta vacía, JSON inválido y corte a mitad de lectura. Lógica pura: días hábiles, estado de mercado, variación del día, brecha, escalas del gráfico, formato es-AR. |
-| Integración con APIs reales | Manual, puntual | No se automatiza: gasta cuota de GNews (100/día) y depende de terceros. Se verificó con curl contra la URL pública y con el dashboard de GNews (caso 3). |
-| e2e (Playwright, modo mock) | Automatizado | Un test por criterio de aceptación, en escritorio y celular (Pixel 7). Los estados de error, cerrado y sin datos se disparan interceptando `/api/*` en el navegador, sin tocar el código de la app. |
-| Responsive | Automatizado parcial + manual | El e2e verifica una sola columna y sin scroll horizontal en celular (H0-7). La legibilidad del gráfico se mira a mano (caso 2). |
-| Accesibilidad básica | Manual | Teclado y Lighthouse Accessibility. El tutorial ya tiene test automatizado de foco, Tab y Esc. No se suma axe: dependencia nueva por un dato que Lighthouse ya da. |
-| Performance | Descartado, salvo una medición | Sin presupuesto para optimizar. Se deja el número de Lighthouse en celular como referencia; el peso del avatar (~1 MB) se trata como riesgo en `riesgos.md`. |
+| Tipo | Decisión | Qué se hizo | Por qué |
+|---|---|---|---|
+| Unitarias (Vitest + MSW) | Automatizado | 98 tests. Adaptadores, normalización y `fetchJson` con MSW simulando timeout, HTTP 429, 500, respuesta vacía, JSON inválido y corte a mitad de lectura; el server en modo real con MSW para histórico vacío, formato cambiado y puntos descartados (#1, #8, #9, #11). Lógica pura: días hábiles, estado de mercado, variación del día, brecha, escalas del gráfico, formato es-AR. | Es donde está la lógica que puede mentir un dato; corre en ~5 s. |
+| Integración con APIs reales | Manual, puntual | `curl` contra la URL pública y dashboard de GNews (caso 3, BUG-01); modo real local con clave inválida (BUG-01). | Automatizarla gasta cuota de GNews (100/día) y depende de terceros. |
+| e2e (Playwright, modo mock) | Automatizado | 29 + 1 salteado: un test por criterio de aceptación, en escritorio y celular (Pixel 7). Error, cerrado, sin datos y avisos del gráfico se disparan interceptando `/api/*` en el navegador. Tutorial: foco, Tab, Esc y pedidos de red con `prefers-reduced-motion` (#12). | Cubre lo que el usuario ve, sin tocar el código de la app. |
+| Responsive | Automatizado parcial + manual | e2e de una columna y sin scroll horizontal en celular (H0-7); caso 2 en celular; caso 1 en celular (captura). | La legibilidad del gráfico solo se juzga mirando. |
+| Accesibilidad básica | Manual + e2e del tutorial | Recorrido con teclado de 15 pasos en Chrome (§5, todos OK); Lighthouse Accessibility en celular: 97. | No se suma axe: dependencia nueva por un dato que Lighthouse ya da. |
+| Performance | Una medición | Lighthouse (PageSpeed Insights) en celular: Rendimiento 82 (§5). Peso del avatar tratado como riesgo (`riesgos.md` fila 10). | Sin presupuesto para optimizar; el número queda como referencia. |
+| Seguridad de claves | Revisión manual | Código e historial de git completo (`git log --all -p`): sin claves (§6, "Revisado sin hallazgos"; `riesgos.md` fila 9). | Es la única clave del producto y lo pide la definición de terminado. |
+| Plan B de la demo | Manual | URL pública de `demo-mock` en ventana privada y hash de `/api/quotes` contra el mock local (§7, 02/10). | Ítem del PDF: probar el plan B en la URL pública. |
+| Lector de pantalla (VoiceOver) | **Descartado por tiempo** | — | Un recorrido serio lleva más de 1 h y el teclado + Lighthouse cubren lo básico. |
+| Otros navegadores (Firefox) y Safari completo | **Descartado por tiempo** | Safari solo en el plan B; e2e solo en Chromium. | El clip WebP animado se eligió porque anda igual en los tres (`CLAUDE.md`); el resto es HTML/CSS estándar. |
+| Carga y estrés | **Descartado por tiempo** | — | El tráfico de la demo es un puñado de visitas; el límite real es la cuota de GNews, ya tratado en `riesgos.md` fila 5. |
+| Pruebas con usuarios del perfil | **Descartado por tiempo** | — | Requiere reclutar usuarios; queda como propuesta en `riesgos.md` fila 2. |
 
 ## 2. Cobertura contra los criterios de aceptación
 
@@ -47,7 +53,7 @@ Presupuesto de QA: 3 h. Al arrancar QA ya existían 85 unitarios y 15 e2e escrit
 
 ```bash
 npm run check        # tipos + lint + 98 unitarios (~5 s)
-npm run test:e2e     # 28 e2e (27 + 1 salteado) en modo mock, un worker, levanta next dev en :3100 (~1,8 min)
+npm run test:e2e     # 30 e2e (29 + 1 salteado) en modo mock, un worker, levanta next dev en :3100 (1 a 2 min)
 ```
 
 El e2e siempre corre en modo mock (`playwright.config.ts` fuerza `USE_MOCK_DATA=true`), así que no gasta cuota ni depende de terceros. Si hay otro `next dev` corriendo sobre la misma carpeta, el e2e no arranca (Next 16).
@@ -62,12 +68,14 @@ El e2e siempre corre en modo mock (`playwright.config.ts` fuerza `USE_MOCK_DATA=
 
 | | |
 |---|---|
-| **Criterios** | H0-1, H0-2, H0-3, H1-1, H1-2 |
+| **Criterios** | H0-1, H0-2, H0-3, H1-1, H1-2, H0-7 |
+| **Por qué este caso** | Es lo que va a ver el evaluador: la URL pública con datos reales, en horario de mercado, en escritorio y en celular. |
 | **Precondición** | URL pública https://tablero-mercado.vercel.app, modo real (sin banner de demostración). Día hábil entre 10 y 18 hs Argentina. Navegador sin sesión previa (ventana privada). |
-| **Pasos** | 1. Abrir la URL. 2. Esperar la entrada y saltar el tutorial. 3. Mirar las 5 tarjetas y la píldora de mercado. 4. Tocar "MEP" en el gráfico y cambiar a 90 d. 5. Bajar al panel de noticias. |
-| **Resultado esperado** | Píldora "Mercado abierto · datos de hace X". 5 tarjetas con valor, variación "hoy" y "hace X min". Brecha con un decimal en blue, MEP y tarjeta. Disclaimer visible sin scroll. Gráfico de MEP con panel de brecha debajo. Noticias con etiquetas ES y EN, sin aviso de fuente caída. |
-| **Resultado real** | *Pendiente: lo ejecuta Mati el 30/09 en horario de mercado.* |
-| **Evidencia** | *Pendiente:* `docs/evidencia/caso1-happy-path-escritorio.png`, `caso1-happy-path-celular.png` |
+| **Pasos** | 1. Abrir la URL. 2. Esperar la entrada y saltar el tutorial. 3. Mirar la píldora de mercado, las 5 tarjetas y el disclaimer. 4. Mirar el gráfico con su panel de brecha. 5. Bajar al panel de noticias. 6. Repetir 1 a 3 en el celular. |
+| **Resultado esperado** | Píldora "Mercado abierto · datos de hace X". 5 tarjetas con valor, variación "hoy" y "hace X min". Brecha con un decimal en blue, MEP y tarjeta. Disclaimer visible sin scroll. Gráfico de un paralelo con panel de brecha debajo. Noticias con etiquetas ES y EN, sin aviso de fuente caída. En celular, una columna, sin corte. |
+| **Resultado real** | **Escritorio, 01/10 12:33 hora Argentina, tema claro: ✔ coincide.** Píldora "Mercado abierto · datos de hace 2 min". Blue $ 1.555 (−0,3 % hoy, brecha +0,6 %, hace 35 min), MEP $ 1.548,9 (−0,5 %, +0,3 %), oficial $ 1.545 ("Referencia para la brecha", hace 3 h), tarjeta $ 2.008,5 (+30,0 %), riesgo país 607 ("dato del 30/09", "Sin brecha"). Disclaimer bajo el título. Blue 30 d (02/09 a 30/09) con el panel "Brecha vs oficial (%)" debajo. Noticias: 18 notas en la captura, con ES y EN, cada una con medio, "hace X", idioma y tema; sin aviso de fuente caída. **Celular:** *pendiente, captura del 02/10 en horario de mercado.* |
+| **Observación** | La captura muestra Blue a 30 d, no MEP a 90 d como decían los pasos originales: el cambio de activo y de rango quedó probado en el recorrido con teclado (§5, pasos 10 y 12) y en el e2e de H0-2. Coincide con lo ya documentado en `riesgos.md` fila 2: las notas en inglés son de mercado internacional y las de español que se ven son todas de Clarín. Sobre H0-2, ver §6 #14. |
+| **Evidencia** | `docs/evidencia/caso1-happy-path-escritorio.png`, `caso1-noticias-escritorio.png`, `caso1-happy-path-celular.png` (pendiente). |
 
 ### Caso 2 · Edge: viernes después del cierre (escenario mock `viernes-cerrado`)
 
@@ -92,21 +100,53 @@ El e2e siempre corre en modo mock (`playwright.config.ts` fuerza `USE_MOCK_DATA=
 | **Pasos** | 1. `curl -s https://tablero-mercado.vercel.app/api/news` y leer `sources`. 2. Abrir la URL y bajar al panel de noticias. 3. Revisar el consumo en el dashboard de GNews. 4. Buscar la causa en los Runtime Logs de Vercel. 5. Repetir el paso 1 al día siguiente. |
 | **Resultado esperado** | Si una búsqueda falla: el panel muestra las notas que sí llegaron y la línea "Una de las fuentes no respondió; la lista puede estar incompleta"; las cotizaciones no se ven afectadas; la respuesta parcial no se cachea 45 min. **Y el equipo puede saber por qué falló.** |
 | **Resultado real** | 29/09 20:02Z y 23:02Z: `ok: true`, `sources: {ok: 1, total: 2}`, 10 notas todas en español. El panel mostró el aviso y siguió andando: **la degradación funcionó como estaba especificada.** 30/09 15:05Z: `sources: {ok: 2, total: 2}`, 19 notas, sin cambios de código en el medio. **La causa no se pudo determinar:** el dashboard de GNews descarta la cuota (10 requests el 29/09 de 100) y muestra que GNews recibió las dos búsquedas a la hora 23 UTC; los logs de Vercel no tienen nada, porque el código no escribe el error en ningún lado y `mergeNews` lo descarta cuando la otra búsqueda sale bien. ✘ Falla en la parte de diagnóstico → `bug-report.md`. |
-| **Verificación adicional (cache)** | Dos GET seguidos a `/api/news` el 30/09: `x-vercel-cache: HIT`, `age: 566`, mismo `fetchedAt`. Con las dos búsquedas bien, el CDN retiene la respuesta 45 min como se diseñó. |
+| **Observación** | Cache: dos GET seguidos a `/api/news` el 30/09: `x-vercel-cache: HIT`, `age: 566`, mismo `fetchedAt`. Con las dos búsquedas bien, el CDN retiene la respuesta 45 min como se diseñó. |
 | **Evidencia** | `docs/evidencia/gnews-dashboard-horas-30-09.png`, `gnews-dashboard-dias-30-09.png`, `cache-news-hit-30-09.txt`, `caso3-noticias-parcial-escritorio.png` (reproducción local de la respuesta del 29/09: solo notas ES y el aviso de fuente caída). |
 
 ---
 
-## 5. Pruebas manuales pendientes
+## 5. Pruebas manuales
 
 | Prueba | Quién | Estado |
 |---|---|---|
-| Caso 1 en la URL pública (capturas escritorio y celular) | Mati | Pendiente |
-| Lighthouse (Accessibility y Performance, celular) sobre la URL pública | Mati | Pendiente |
-| Recorrido con teclado: Tab por tarjetas, tabs del gráfico, "Ver como tabla", links de noticias | Mati | Pendiente |
-| Plan B: activar modo mock en Vercel y verificar el banner en la URL pública | Mati + Tech Lead | **Hecho (01/10).** URL fija de preview (rama `demo-mock`, variables de Preview solo para esa rama). Ventana privada: abre sin login, con el banner y datos del fixture; `/api/quotes` idéntico al mock local (`diff` vacío). Producción sigue en modo real (diff contra el mock: fechas del 01/10). Deploy en 14 s. Activar el mock en producción cambiando la variable no sirve: Vercel exige redeploy. Detalle en `demo.md`, "Plan B". |
+| Caso 1 en la URL pública | Mati | Escritorio **hecho (01/10)**; celular pendiente (02/10, horario de mercado). Ver §4. |
+| Lighthouse en celular sobre la URL pública | Mati | **Hecho (02/10)**, abajo. |
+| Recorrido con teclado | Mati | **Hecho (02/10)**, 15 de 15 OK, abajo. |
+| Plan B: modo mock en una URL pública con banner | Tech Lead (01/10) + QA (02/10) | **Hecho.** URL fija de preview (rama `demo-mock`, variables de Preview solo para esa rama). Tech Lead (01/10): ventana privada sin login, banner y datos del fixture; `/api/quotes` idéntico al mock local (`diff` vacío); producción en modo real; deploy en 14 s; cambiar la variable en producción no sirve porque Vercel exige redeploy (detalle en `demo.md`, "Plan B"). QA lo repitió el 02/10 (ítem del PDF "probar plan B en la URL pública"): banner en ventana privada y `/api/quotes` con el mismo SHA-256 que el mock local (§7). |
 
----
+### Lighthouse en celular (02/10)
+
+PageSpeed Insights, pestaña Celulares, sobre https://tablero-mercado.vercel.app, 02/10 02:12 hora Argentina (mercado cerrado; primera visita, con la bienvenida del tutorial abierta). Una sola corrida; los valores cambian entre corridas.
+
+| Rendimiento | Accesibilidad | Prácticas recomendadas | SEO |
+|---|---|---|---|
+| 82 | 97 | 100 | 100 |
+
+- **Rendimiento 82** (franja naranja, 50 a 89) en un celular emulado con red y CPU limitadas: aceptable para un tablero sin optimización dedicada; la corrida incluye la primera visita con el tutorial, que es el caso más pesado (`riesgos.md` fila 10).
+- **Accesibilidad 97**: alguna auditoría automática no pasa; el detalle no se registró en la captura. El recorrido con teclado no encontró bloqueos (un hallazgo menor, §6 #13).
+- **Prácticas recomendadas y SEO 100**. Evidencia: `docs/evidencia/lighthouse-celular-02-10.png`.
+
+### Recorrido con teclado (02/10)
+
+Chrome en ventana de incógnito sobre la URL pública, sin mouse. 15 de 15 OK.
+
+| # | Acción | Esperado | Resultado |
+|---|---|---|---|
+| 1 | Tab en la bienvenida del tutorial | El foco va y viene entre Saltar y Empezar, con anillo visible; no sale del globo | OK |
+| 2 | Enter en Empezar | "Paso 1 de 4" | OK |
+| 3 | Tab en el paso 1 | Recorre "Saltar tutorial" y "Siguiente"; "Anterior" deshabilitado | OK |
+| 4 | Enter en Siguiente ×3 | "Paso 4 de 4", el botón dice Entendido | OK |
+| 5 | Enter en Entendido | Se cierra el tutorial | OK |
+| 6 | Tab desde arriba | El primer foco es "¿Cómo leer esto?"; las tarjetas no reciben foco (no son interactivas) | OK |
+| 7 | Enter en "¿Cómo leer esto?" | Abre el tutorial en el paso 1 | OK |
+| 8 | Esc | Cierra y el foco vuelve a "¿Cómo leer esto?" | OK |
+| 9 | Tab y Enter en el botón de tema | Cambia entre claro y oscuro | OK |
+| 10 | Tab por los activos; Enter en MEP | Cada activo recibe foco; el gráfico pasa a MEP | OK |
+| 11 | Flechas ← → sobre los activos | Sin efecto (se esperaba así; ver §6 #13) | OK |
+| 12 | Tab a 7 d / 30 d / 90 d; Enter en 90 d | El gráfico pasa a 90 días | OK |
+| 13 | Enter en "Ver como tabla" (dos veces) | Abre y cierra la tabla | OK |
+| 14 | Tab por las noticias; Enter en una | Cada título se marca; abre la nota en otra pestaña | OK |
+| 15 | Shift+Tab en cualquier punto | El foco vuelve para atrás sin trabarse | OK |
 
 ## 6. Revisión de código (30/09)
 
@@ -125,7 +165,9 @@ Alcance: `src/app/api/`, `src/lib/` (adaptadores, `fetch-json`, `data`, cache), 
 | 9 | **Un histórico con algunos puntos inválidos los descarta en silencio.** `normalizeHistorico` saltea cada elemento que no tiene el formato esperado y devuelve `ok` con los que quedan. Probado con MSW: con la mitad de los `venta` en `null`, blue 30 d da 14 puntos en vez de 30, sin aviso; la línea del gráfico une los huecos y parece continua. | Baja · dato incompleto sin aviso | `providers/argentinadatos.ts` (`normalizeHistorico`) | **Arreglado en `1eb36b1`** (decisión de Mati, 30/09; QA proponía solo documentarlo): `parseHistorico` devuelve también cuántos elementos descartó; `normalizeHistorico` queda igual (envuelve a la nueva) y cambia el tipo de `fetchHistorico`, que solo usa `data.ts`. `/api/history` expone `skippedPoints` (sobre toda la serie del proveedor, no sobre el rango), el server deja una línea `[history] <activo>: N puntos descartados por formato` con `console.warn` y el gráfico dice "Algunos datos del proveedor no se pudieron leer y no se muestran", sin decir cuántos días faltan. La respuesta sigue siendo `ok` y se cachea igual; sin ningún punto válido sigue siendo `invalid` (#8). Tests: `providers.test.ts` (2 válidos + 1 inválido → 2 puntos, 1 descartado), `data.test.ts` (modo real con MSW: mitad de los `venta` en `null` → `skippedPoints` 46 y un solo `console.warn` con el texto exacto) y `estados.spec.ts` (aviso en Blue, no en MEP). **No cubierto:** si el rango elegido queda vacío se ve "Sin datos para este período" sin el aviso. **Verificado por QA (01/10)**, con una observación: el mismo descarte silencioso pasa en la serie del **oficial** que se usa para la brecha (hallazgo #11). |
 | 10 | **Si el histórico del oficial falla, el panel de brecha desaparece del gráfico sin decir por qué.** `getHistory` deja `gapSeries: null` y `HistoryChart` no dibuja el panel ni muestra "brecha no disponible": para un paralelo se ve igual que para oficial o riesgo país. Las tarjetas sí lo dicen (H1-4); el gráfico no. Pasa con cualquier error del oficial, no solo con el formato cambiado: es anterior al #8. Probado con MSW: oficial con formato cambiado → blue `ok`, `gapSeries: null`. | Baja · H1-2 sin estado de error | `lib/data.ts`, `HistoryChart.tsx` | **Arreglado en `e3d3166`**: `HistoryResponse.gapUnavailable` es `true` solo si el activo es un paralelo y el histórico del oficial vino con error (incluye `empty`: para un paralelo la brecha aplica y falta igual). En el lugar del panel de brecha va "Brecha no disponible para este período", con el estilo secundario de la leyenda. Oficial y riesgo país sin cambios (H1-3). Tests: `data.test.ts` (modo real con MSW: blue bien + oficial 500 → `gapUnavailable: true`; oficial → `false`) y `estados.spec.ts` (texto visible, sin `.line.gap`, precio dibujado; en Oficial, sin aviso). **No cubierto, se documenta:** si el oficial responde pero no tiene ninguna fecha dentro del rango, `gapSeries` es `[]` y el panel desaparece sin aviso. **Verificado por QA (01/10).** De acuerdo con contar el `empty` del oficial como "no disponible": para un paralelo la brecha aplica y el dato falta igual (comprobado con MSW: oficial `[]` → `gapUnavailable: true`; no tiene test propio). |
 | 11 | **La serie del oficial con puntos inválidos deja la brecha con huecos, sin aviso.** `getHistory` cuenta y avisa `skippedPoints` solo para la serie del activo elegido. Si los elementos ilegibles están en el histórico del **oficial**, la brecha de blue/MEP/tarjeta se calcula solo con las fechas que quedan, la línea une los huecos, no sale el aviso del gráfico ni la línea `[history]`. Probado con MSW (01/10): oficial con la mitad de los `venta` en `null` → blue 30 d con 27 puntos de precio y **13 de brecha**, `skippedPoints: 0`, `gapUnavailable: false`, ningún `console.warn`. Solo se ve si el usuario elige "Oficial" en el gráfico (ahí sí avisa). | Baja · dato incompleto sin aviso (mismo caso que #9, en la brecha) | `lib/data.ts` (`getHistory`) | **Arreglado en `1c39d79`** (opción (a), decisión de Mati, 01/10): en un paralelo, los descartados del histórico del oficial se suman a `skippedPoints`, que pasa a significar "descartados en las series que usa el gráfico" (contrato y UI sin cambios: mismo aviso "Algunos datos del proveedor no se pudieron leer y no se muestran"). El server deja una línea propia, `[history] oficial (brecha de <activo>): N puntos descartados por formato`, además de la del activo si la tiene. Pedir "oficial" como activo no cambia: avisa por su propia serie, una sola línea. Tests en `data.test.ts`, modo real con MSW: blue bien + oficial con la mitad de los `venta` en `null` → `ok`, `skippedPoints` 46 y **una** línea `[history] oficial (brecha de blue)…` (falla con `69b2b78`: daba `skippedPoints` 0); oficial como activo con los mismos datos → 46 y una sola línea `[history] oficial: …`. Mock: 3 escenarios × 5 activos × 3 rangos en 0. |
-| 12 | **Con `prefers-reduced-motion`, el saludo animado se descarga igual y nunca se muestra.** Observado por QA el 01/10 en `riesgos.md` (fila 10), no en esta tabla; lo anota acá el Tech Lead con los archivos actuales. El `useEffect` que pide el saludo la primera vez no miraba la preferencia: `mati-saludo.webp` (474 KB) se bajaba aunque el avatar muestra el cuadro fijo (`mati-saludo-0.webp`, 11 KB). Los clips `paso` (302 KB) y `cierre` (161 KB) ya respetaban la preferencia: el `src` usa el cuadro fijo y el pedido anticipado del paso siguiente sale antes con `reduce`. | Baja · peso de más con datos móviles | `components/Tutorial.tsx` (pedido del saludo) | **Arreglado (01/10, Tech Lead)**: con la preferencia activa no se pide el saludo animado; una línea en el `useEffect`, sin tocar cache ni UI. Test: e2e en `tablero.spec.ts` ("con prefers-reduced-motion no se pide ningún clip animado"): emula la preferencia, abre el tutorial como primera visita, recorre los 4 pasos y exige que todos los pedidos a `/avatar/` sean cuadros fijos (`-0.webp`). Con el código anterior falla por el pedido del saludo (razonado, no corrido: lo verifica QA). **Pendiente de verificación por QA.** |
+| 12 | **Con `prefers-reduced-motion`, el saludo animado se descarga igual y nunca se muestra.** Observado por QA el 01/10 en `riesgos.md` (fila 10), no en esta tabla; lo anota acá el Tech Lead con los archivos actuales. El `useEffect` que pide el saludo la primera vez no miraba la preferencia: `mati-saludo.webp` (474 KB) se bajaba aunque el avatar muestra el cuadro fijo (`mati-saludo-0.webp`, 11 KB). Los clips `paso` (302 KB) y `cierre` (161 KB) ya respetaban la preferencia: el `src` usa el cuadro fijo y el pedido anticipado del paso siguiente sale antes con `reduce`. | Baja · peso de más con datos móviles | `components/Tutorial.tsx` (pedido del saludo) | **Arreglado (01/10, Tech Lead)**: con la preferencia activa no se pide el saludo animado; una línea en el `useEffect`, sin tocar cache ni UI. Test: e2e en `tablero.spec.ts` ("con prefers-reduced-motion no se pide ningún clip animado"): emula la preferencia, abre el tutorial como primera visita, recorre los 4 pasos y exige que todos los pedidos a `/avatar/` sean cuadros fijos (`-0.webp`). Con el código anterior falla por el pedido del saludo. **Verificado por QA (02/10)**: el test falla con el `src/` de `2e39607` y pasa con `db46eb5` (§7). |
+| 13 | **Los selectores de activo y período no responden a las flechas.** Tienen `role="tablist"` / `role="tab"`, y el patrón ARIA de pestañas espera moverse con ← →; acá cada pestaña es una parada de Tab y se activa con Enter o espacio. Encontrado en el recorrido con teclado (§5, paso 11). | Baja · accesibilidad, no bloquea: todo se opera con Tab y Enter | `components/HistoryChart.tsx` l. 114-121 | Se documenta (código congelado). |
+| 14 | **H0-2 dice "toco una tarjeta" y las tarjetas no se pueden tocar.** El activo del gráfico se elige con los botones de arriba del gráfico (Blue, MEP, Oficial, Tarjeta, Riesgo país); `QuoteCard` no tiene acción. El e2e de H0-2 prueba los botones, así que el criterio, tal como está escrito, no lo verifica ningún test. | Baja · diferencia entre especificación y producto | `docs/producto.md` §5 H0-2; `components/QuoteCard.tsx` | Se documenta. Precisar el criterio ("cuando elijo un activo en el gráfico") es decisión del PO, como el desvío de H0-4 del 30/09. |
 
 **Revisado sin hallazgos:**
 - **Claves:** `NEWS_API_KEY` solo se lee en el server (`providers/news.ts`, vía `data.ts`). `next.config.ts` loguea fetches con `fullUrl: false`, así que la URL con la key no va a los logs. En el historial de git no hay `.env*` (solo `.env.example`) ni ningún `apikey=` con valor. Los mensajes de error que viajan al cliente son textos fijos sin URL, y la UI muestra `ERROR_TEXT` por tipo.
@@ -171,3 +213,38 @@ Sobre `c8d771d`, en un clon limpio de GitHub con `npm ci`: `npm run check` → *
 | Casos borde | **Documentados; uno nuevo** | Oficial sin fechas en el rango (MSW, blue 7 d): `gapSeries: []`, `gapUnavailable: false` → el panel desaparece sin aviso. Rango vacío con descartados: `series: []`, `skippedPoints: 1` → "Sin datos para este período" sin el aviso. Los dos están en las filas #9 y #10 y se comportan como dicen. Nuevo: #11. |
 | `workers: 1` | **Verificado** | La explicación de §3 cierra: los traces muestran la Mac sin CPU (4 consultas en 5 s, `Tab` sin procesar en 22 s), no un error de la app, y en la nube (2 vCPU) los 27 pasan con 1 y con 2 workers en el mismo tiempo (1,2 min), así que el paralelismo no ahorraba nada. No esconde nada de la app: los tests no comparten estado entre sí (cada uno abre su página contra el mismo `next dev` en mock). Lo único a vigilar: el test del tutorial es el más sensible a la carga; si vuelve a fallar con un worker, ya no es la CPU. |
 | Docs | **Verificado** | Filas #9 y #10, punto 7 de `CLAUDE.md` y `arquitectura.md` describen lo que hace el código y apuntan a `e3d3166` y `1eb36b1`; ningún `<hash…>` sin reemplazar. Desactualizado después de esta verificación: el punto 7 de `CLAUDE.md` todavía dice "Pendiente: que QA verifique #9 y #10" (no es un archivo de QA; queda para el Tech Lead). |
+
+### Verificación del hallazgo #12, del plan B y del #7 (02/10)
+
+Sobre `37f7cb7` (`main` y `demo-mock` en GitHub; incluye `db46eb5`), en un clon limpio con `npm ci`: `npm run check` → **98 unitarios en verde**; `npm run test:e2e` (con `playwright.local.config.ts`, Chromium 1194, sin commitear) → **29 pasados + 1 salteado** en 1,0 min.
+
+| Qué | Resultado | Evidencia |
+|---|---|---|
+| #12 · e2e contra el código anterior | **Verificado** | El test "con prefers-reduced-motion no se pide ningún clip animado" pasa con `db46eb5` en escritorio y celular. Con el `src/` de `2e39607` (`db46eb5^`) falla en los dos viewports y el pedido de más es exactamente `/avatar/mati-saludo.webp` (`Received: ["/avatar/mati-saludo.webp"]`). Prueba el arreglo, no pasa de casualidad. `src/` restaurado después. `docs/evidencia/e2e-12-antes-despues-02-10.txt`. |
+| #12 · navegador | **Cubierto por el e2e; no se repitió a mano en producción** | El e2e es la verificación de red en un navegador real: Chromium con la preferencia emulada, registra cada pedido a `/avatar/` y exige solo cuadros fijos (`-0.webp`, 11.748 B). La prueba manual en Network solo agregaba confirmar el deploy, que se deduce: Vercel publica `main` y `main` incluye `db46eb5`. Pesos en `public/avatar/`: saludo 474.194 B, paso 301.698 B, cierre 160.994 B (coinciden con `riesgos.md` fila 10). | 
+| Plan B en la URL pública | **Verificado** | Ventana privada de Safari, sin sesión de Vercel: la URL de `demo-mock` abre sin login, con el banner "Datos de demostración, no reflejan el mercado", la bienvenida del tutorial (primera visita) y datos del fixture `normal` (blue $ 1.560, riesgo país 609, "dato del 25/09"). `curl -s <plan B>/api/quotes \| shasum -a 256` desde la Mac = `d5c34e99…e477e9fd`, idéntico al `/api/quotes` del mock local `normal` (dos llamadas locales, mismo hash: la respuesta es determinística). Producción sigue en modo real: sin banner y con otros valores (blue $ 1.555 "en la rueda", riesgo país 636). `docs/evidencia/planb-banner-privada-02-10.png`, `produccion-modo-real-02-10.png`. |
+| Plan B · escenarios | **Alcance, no hallazgo** | `viernes-cerrado` y `sin-oficial` no están expuestos en esa URL: el escenario sale solo de `MOCK_SCENARIO` (`data.ts`, `configFromEnv`) y la rama tiene `normal`. Para mostrarlos en la demo se usa `npm run dev` local con la variable (caso 2). |
+| #7 · límite de duración de funciones | **Verificado** | Las dos páginas de Vercel enlazadas en `riesgos.md` fila 12 (actualizadas el 24/08/2026) dicen, con Fluid compute: "Hobby: 300s default and maximum". Coincide con lo citado. También se confirma la salvedad de la fila: ninguna de las dos da el límite sin Fluid compute. |
+| Pendiente para la revisión final | **Observación** | El `main` local tiene `3569306` (solo docs) sin pushear; en GitHub `main` y `demo-mock` están en `37f7cb7`. No cambia la demo, pero el punto 5 de `CLAUDE.md` pide `demo-mock` en el último commit. |
+
+---
+
+## 8. Evidencia
+
+Todo en `docs/evidencia/`.
+
+| Archivo | Qué muestra | Cubre |
+|---|---|---|
+| `caso1-happy-path-escritorio.png` | URL pública en mercado abierto: píldora, 5 tarjetas, disclaimer, Blue 30 d con brecha (01/10 12:33) | Caso 1 |
+| `caso1-noticias-escritorio.png` | Panel de noticias en producción con notas ES y EN, sin aviso de fuente caída | Caso 1 |
+| `caso1-happy-path-celular.png` | *Pendiente (02/10)* | Caso 1 |
+| `caso2-viernes-cerrado-escritorio.png` | Mock `viernes-cerrado`: mercado cerrado, último cierre, variación "en la rueda" | Caso 2 |
+| `caso2-viernes-cerrado-celular.png` | Lo mismo en celular, apilado y sin scroll horizontal | Caso 2 |
+| `caso3-noticias-parcial-escritorio.png` | Reproducción local de la respuesta del 29/09: solo notas ES y el aviso de fuente caída | Caso 3, BUG-01 |
+| `gnews-dashboard-horas-30-09.png` | Requests por hora en GNews: llegaron las dos búsquedas | Caso 3, BUG-01 |
+| `gnews-dashboard-dias-30-09.png` | 10 requests el 29/09: cuota lejos del límite | Caso 3, BUG-01, `riesgos.md` fila 5 |
+| `cache-news-hit-30-09.txt` | Dos GET a `/api/news`: `HIT` del CDN, mismo `fetchedAt` | Caso 3 (cache) |
+| `e2e-12-antes-despues-02-10.txt` | Test del #12 en verde con `db46eb5` y en rojo con el código anterior; suite completa | §6 #12, §7 |
+| `planb-banner-privada-02-10.png` | URL de `demo-mock` en ventana privada, con el banner | §5 plan B, §7 |
+| `produccion-modo-real-02-10.png` | Producción sin banner y con datos reales | §7 (producción no quedó en mock) |
+| `lighthouse-celular-02-10.png` | PageSpeed Insights, celular: 82 / 97 / 100 / 100 | §5 Lighthouse |
