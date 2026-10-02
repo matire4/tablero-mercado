@@ -1,6 +1,6 @@
 # Uso de IA
 
-Cómo se usó la IA en el challenge, qué prompts pesaron más y dónde se equivocó. Todo sale de `docs/ai-log.md` (diario anotado en el momento, 42 entradas del 25/09 al 30/09), de las decisiones de `CLAUDE.md` y del historial de git. Cada error citado tiene su entrada en `ai-log.md` con la fecha indicada.
+Cómo se usó la IA en el challenge, qué prompts pesaron más y dónde se equivocó. Todo sale de `docs/ai-log.md` (diario anotado en el momento, 48 entradas del 25/09 al 02/10), de las decisiones de `CLAUDE.md` y del historial de git. Cada error citado tiene su entrada en `ai-log.md` con la fecha indicada.
 
 ## 1. Herramientas y cómo se usaron
 
@@ -67,6 +67,6 @@ El trabajo sobre el repo se hizo con Claude (Cowork) con la carpeta conectada: l
 
 1. Los errores más caros de la IA fueron afirmaciones sin mirar (la variación por día hábil, la cuota de GNews, Recharts); las reglas que más rindieron fueron las que obligan a verificar antes: curl antes del adaptador, `tsc` antes del test, `npm view` antes de instalar.
 2. Los tests que escribe el mismo rol que escribe el código tienden a describir el código: el e2e de H0-6 y el test de "blue 30 días" pasaban con el error adentro. El rol adversarial, sin el razonamiento de diseño, fue el que los encontró.
-3. El alcance creció después de congelar la estimación: diseño (3–4 h, 28/09) y el avatar del tutorial en tres vueltas (29/09 y 01/10). Cada agregado se registró con su costo en `estimaciones.md`, "Alcance agregado después de congelar", en vez de esconderse en las filas congeladas; por eso el total (33,83 h al 01/10) se puede explicar línea por línea contra las 28 h del escenario base.
+3. El alcance creció después de congelar la estimación: diseño (3–4 h, 28/09) y el avatar del tutorial en tres vueltas (29/09 y 01/10). Cada agregado se registró con su costo en `estimaciones.md`, "Alcance agregado después de congelar", en vez de esconderse en las filas congeladas; por eso el total (35,83 h al 01/10; el número vigente está en `docs/horas.md`) se puede explicar línea por línea contra las 28 h del escenario base.
 4. El repo como memoria compartida funcionó, pero `CLAUDE.md` se desactualiza solo si nadie lo relee: la fecha de entrega mal copiada y la contradicción sobre días hábiles aparecieron al abrir un chat nuevo.
 5. Para lo visual, la IA necesita una referencia y un video, no una descripción y capturas: los mockups necesitaron dos vueltas antes de acertar y el avatar "que parecía mover una hoja de papel" solo se vio en una grabación (ai-log 29/09).

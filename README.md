@@ -84,6 +84,7 @@ Los nombres están en [`.env.example`](.env.example). Ningún valor real va al r
 | [`docs/bug-report.md`](docs/bug-report.md) | Bug real encontrado en producción (BUG-01), con su arreglo y verificación |
 | [`docs/riesgos.md`](docs/riesgos.md) | Matriz de riesgos con mitigación y dónde está en el código |
 | [`docs/demo.md`](docs/demo.md) | Guion de la demo y plan B |
+| [`docs/evidencia/`](docs/evidencia/) | Capturas y salidas de tests que respaldan `testing.md` |
 | [`CLAUDE.md`](CLAUDE.md) | Decisiones cerradas y estado del proyecto (contexto para los agentes de IA) |
 
 ## Límites conocidos

@@ -30,6 +30,7 @@ El guion con minutos y el apéndice técnico se escriben en la fase de demo. Mie
 - Deploy: el push de `demo-mock` no generó un deploy (sin causa verificada); se creó a mano desde Deployments → ⋯ → Create Deployment → `demo-mock`. Tardó 14 s hasta Ready.
 
 **Antes de la demo:**
+- Estado al 02/10: `demo-mock` apunta a `37f7cb7`, con el mismo código que `db46eb5` (los commits entre los dos son solo docs). Después de cualquier push a esa rama, Vercel no crea el deploy solo: hay que crearlo a mano (Deployments → ⋯ → Create Deployment → `demo-mock`) y verificar el banner en ventana privada.
 - Después de congelar el código, apuntar la rama al commit congelado (`git push origin <hash>:demo-mock`) y, si no aparece un deploy nuevo, crearlo igual que arriba. Verificar el banner en ventana privada.
 - No usar `vercel deploy` desde la terminal para esta rama: esos deploys no quedan asociados a la rama y no toman sus variables ([guía de Vercel](https://vercel.com/kb/guide/branch-variables-and-domains-not-linked-to-cli-deployments)).
 

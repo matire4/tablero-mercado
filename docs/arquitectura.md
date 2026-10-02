@@ -163,7 +163,7 @@ interface Quote {
   unit: 'ARS' | 'puntos';
   buy: number | null;          // null en riesgo país
   sell: number;                // valor principal; en riesgo país es el índice
-  changePct: number | null;    // variación vs cierre del día hábil anterior; null si no se pudo calcular
+  changePct: number | null;    // variación vs la última entrada del histórico con fecha anterior a la del dato (§8); null si no se pudo calcular
   gapVsOficial: number | null; // brecha %, un decimal; null en oficial, riesgo país, u oficial ausente
   updatedAt: string;           // ISO, hora del dato según el proveedor
   updatedAtHasTime: boolean;   // false en riesgo país (el proveedor da solo fecha)
