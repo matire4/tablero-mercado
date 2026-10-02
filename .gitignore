@@ -45,3 +45,4 @@ next-env.d.ts
 
 # scaffold temporal (borrar la carpeta después de la fusión)
 /scaffold-next/
+Claude outputs/
