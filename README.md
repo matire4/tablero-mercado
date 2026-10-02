@@ -25,7 +25,13 @@ cp .env.example .env.local   # completar NEWS_API_KEY si se quieren noticias rea
 npm run dev                  # http://localhost:3000
 ```
 
-**Sin claves:** con `USE_MOCK_DATA=true` en `.env.local` el tablero usa datos reales guardados (`src/lib/fixtures/`) y no llama a ninguna API. Muestra un banner de "Datos de demostración" que no se puede ocultar. Es el plan B de la demo y la base de los tests.
+**Modo mock (sin claves):** con `USE_MOCK_DATA=true` el tablero usa datos reales guardados (`src/lib/fixtures/`) y no llama a ninguna API. Muestra un banner de "Datos de demostración" que no se puede ocultar. Es el plan B de la demo y la base de los tests. Se activa en `.env.local` o directo en la línea de comandos (las variables del proceso pisan a `.env.local`):
+
+```bash
+USE_MOCK_DATA=true MOCK_SCENARIO=normal npm run dev
+```
+
+**Plan B en la URL pública:** https://tablero-mercado-git-demo-mock-matias-projects-d0bd5617.vercel.app es el mismo código en modo mock (rama `demo-mock`). Cómo está armado y por qué no se activa cambiando la variable en producción: [`docs/demo.md`](docs/demo.md), "Plan B".
 
 | `MOCK_SCENARIO` | Qué muestra |
 |---|---|
@@ -69,14 +75,16 @@ Los nombres están en [`.env.example`](.env.example). Ningún valor real va al r
 | Doc | Contenido |
 |---|---|
 | [`docs/producto.md`](docs/producto.md) | Usuario, problema, supuestos, activos, features, historias de usuario, descartes |
+| [`docs/estimaciones.md`](docs/estimaciones.md) | Estimación congelada antes de codear, y real vs. estimado con sus desvíos |
 | [`docs/arquitectura.md`](docs/arquitectura.md) | Diagrama, tipos, contratos de la API, cache, mercado cerrado, brecha, noticias, modo mock |
-| [`docs/estimaciones.md`](docs/estimaciones.md) | Estimación congelada antes de codear, y real vs. estimado |
-| [`docs/horas.md`](docs/horas.md) | Registro de horas por sesión |
-| [`docs/riesgos.md`](docs/riesgos.md) | Riesgos detectados durante el desarrollo |
+| [`docs/uso-de-ia.md`](docs/uso-de-ia.md) | Herramientas, prompts clave y dónde se equivocó la IA |
 | [`docs/ai-log.md`](docs/ai-log.md) | Diario de errores y correcciones de la IA, anotados en el momento |
+| [`docs/horas.md`](docs/horas.md) | Registro de horas por sesión |
+| [`docs/testing.md`](docs/testing.md) | Plan de pruebas, cobertura por criterio, casos documentados, revisión de código |
+| [`docs/bug-report.md`](docs/bug-report.md) | Bug real encontrado en producción (BUG-01), con su arreglo y verificación |
+| [`docs/riesgos.md`](docs/riesgos.md) | Matriz de riesgos con mitigación y dónde está en el código |
+| [`docs/demo.md`](docs/demo.md) | Guion de la demo y plan B |
 | [`CLAUDE.md`](CLAUDE.md) | Decisiones cerradas y estado del proyecto (contexto para los agentes de IA) |
-
-Plan de pruebas, reporte de bug, uso de IA y guion de demo se suman en la fase de calidad.
 
 ## Límites conocidos
 

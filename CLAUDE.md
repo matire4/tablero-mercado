@@ -1,10 +1,11 @@
 # Rubika — Tablero de mercado
 
 ## Estado
-Fase actual: desarrollo (producto cerrado el 26/09/2026; arquitectura aprobada el 27/09, revisada el 28/09 con formatos reales).
-Día 1 de 10 (día 0 = 28/09). Entrega: miércoles 07/10; demo jueves 08 o viernes 09/10 (propuesto a Rubika el 28/09). Horas usadas: 33,83 al 01/10 (ver docs/horas.md; pasa las 28 del escenario base) de 28 (escenario realista: 30-32 declarado; 33-36 con el alcance de diseño del 28/09; 35-38,5 con el avatar del tutorial del 29/09; 36,5-40,5 con el avatar sin fondo y globo de cómic).
+Fase actual: cierre y demo (producto cerrado el 26/09/2026; desarrollo y primera fase de QA cerrados el 01/10).
+Día 3 de 10 (día 0 = 28/09). Entrega: miércoles 07/10; demo jueves 08 o viernes 09/10 (propuesto a Rubika el 28/09). Horas reales: 35,83 al 01/10 (docs/horas.md), contra 28 del escenario base y 37,5–41,5 del realista con todo el alcance agregado (docs/estimaciones.md).
+Código congelado el 01/10 en el commit `db46eb5`; cambios solo por bug bloqueante, con entrada en docs/ai-log.md y docs/bug-report.md.
 
-URL pública: https://tablero-mercado.vercel.app (deploy automático en cada push a main).
+URL pública: https://tablero-mercado.vercel.app (deploy automático en cada push a main). Plan B de la demo: https://tablero-mercado-git-demo-mock-matias-projects-d0bd5617.vercel.app (rama `demo-mock` en modo mock; ver docs/demo.md, "Plan B").
 
 ## Decisiones cerradas (no reabrir sin avisarme)
 - Usuario: cliente minorista argentino de un banco, sin formación financiera, celular y escritorio. App standalone embebible; sin login ni datos personales.
@@ -50,7 +51,7 @@ URL pública: https://tablero-mercado.vercel.app (deploy automático en cada pus
 - Manejo de timeout (5 s), 429 y vacío en un único helper (lib/fetch-json.ts).
 - Histórico (01/10): `HistoryResponse` trae `gapUnavailable` (paralelo con el histórico del oficial caído) y `skippedPoints` (elementos del proveedor descartados por formato en las series que usa el gráfico: la del activo y, en un paralelo, la del oficial que arma la brecha; hallazgo #11). Los dos son `ok`, se cachean igual y el gráfico los dice en una línea secundaria; el server deja `[history] …` con `console.warn`.
 - e2e con `workers: 1` (01/10): con 2, la Mac se quedaba sin CPU y el test del tutorial fallaba al azar; tarda lo mismo (testing.md §3).
-- Modo mock: USE_MOCK_DATA=true + MOCK_SCENARIO=normal|viernes-cerrado|sin-oficial, `now` congelado por fixture, banner no ocultable "Datos de demostración, no reflejan el mercado". Fixtures recortados a 90 días (igual al rango máximo del selector; antes 60 y el mock mostraba menos de lo que prometía, 29/09); crudos en raw/ como evidencia.
+- Modo mock: USE_MOCK_DATA=true + MOCK_SCENARIO=normal|viernes-cerrado|sin-oficial, `now` congelado por fixture, banner no ocultable "Datos de demostración, no reflejan el mercado". Fixtures recortados a 90 días (igual al rango máximo del selector; antes 60 y el mock mostraba menos de lo que prometía, 29/09); crudos en raw/ como evidencia. Plan B en producción (01/10): rama `demo-mock` con variables de Preview atadas solo a esa rama (`USE_MOCK_DATA=true`, `MOCK_SCENARIO=normal`); cambiar la variable en producción no sirve porque Vercel exige redeploy.
 - Variables de entorno: .env.local solo local; producción se carga a mano en Vercel. Ningún valor real en el repo.
 
 ## Restricciones
@@ -61,18 +62,14 @@ URL pública: https://tablero-mercado.vercel.app (deploy automático en cada pus
 - Los docs viven en /docs con los nombres ya definidos.
 
 ## Pendiente
-Hecho (28-29/09): fixtures; business-days + change + market-status con tests; scaffold + deploy; capa de datos con tests MSW; route handlers con cache verificada; NEWS_API_KEY en Vercel y endpoints verificados en la URL pública; riesgos.md iniciado; tarjetas + estados + banner mock + tema; gráfico SVG con panel de brecha; Node 24.x en Vercel; entradas del PO en ai-log.md; horas.md al día; producto.md y estimaciones.md copiados al repo; archivos vacíos `next`, `tsc` y `tablero-mercado@0.1.0` borrados.
+Hecho al 01/10: producto, arquitectura, código (alcance base, feature 1, diseño, entrada, tutorial con avatar), README, tests (98 unitarios, 29 e2e + 1 salteado), QA (testing.md, bug-report.md con BUG-01 real, matriz de riesgos, hallazgos #1-#12 resueltos o documentados en testing.md §6), plan B verificado, uso-de-ia.md y real/desvío de desarrollo y calidad en estimaciones.md.
 
-Siguiente, en este orden (acordado 29/09):
-1. Noticias: hecho (29/09), 85 tests en verde. Verificado en la URL pública el 29/09 a las 20:02 (después del push del tutorial): `/api/news` responde `ok` con 10 notas, todas en español, y `sources: {ok: 1, total: 2}`: la búsqueda en inglés falla en producción y el panel muestra el aviso de fuente caída. Causa sin verificar (el endpoint no expone el error). Pasó a BUG-01 en bug-report.md: **resuelto en `83587f6` (30/09)**; ahora cada búsqueda que falla deja una línea `[news]` en el log y `/api/news` expone `sources.failed: [{ lang, kind }]`. Verificado en producción el 30/09 21:12 (`failed: []`, 20 notas). La causa del 29/09 sigue sin determinar.
-2. README: hecho (29/09).
-3. e2e con Playwright: hecho (29/09). 6 tests × escritorio/celular en modo mock, cada uno nombra su criterio (H0-1, H0-2, H0-3, H0-5, H0-7, H1-1, H1-2, H1-3). Si la entrada o el tutorial tapan la pantalla la primera vez, el e2e tiene que cerrarlos o saltearlos.
-4. Entrada "puertas": hecha (29/09). Tutorial de 4 pasos: hecho (29/09), sin dependencias; el e2e marca entrada y tutorial como vistos y suma 2 tests del tutorial (abrir desde el botón con recuadro ±2 px sobre cada paso, Tab, Esc y foco; apertura automática la primera vez): 15 e2e en verde + 1 salteado. Avatar en el tutorial: hecho (29/09), con clips del video del portafolio, en escritorio y celular; tests del tutorial ajustados a la bienvenida (15 e2e en verde + 1 salteado). Tercera vuelta (sin fondo + globo de cómic + celular con Mati desde abajo): hecha (29/09), 15 e2e en verde + 1 salteado; Mati la aprobó ("9/10, casi listo"). Que hable y señale (pendiente opcional del 29/09): hecho el 01/10 con el video de Kling de Mati (ver Diseño); arregla además el salto del avatar al terminar el saludo. 27 e2e + 1 salteado en verde.
-5. Lint: hecho (29/09). `npm run check` ahora corre tipos + lint + tests.
-6. No desarrollo: testing.md: hecho (30/09; verificaciones de arreglos hasta el 01/10; faltan el caso 1 y las pruebas manuales de §5, de Mati). bug-report.md: hecho (30/09; BUG-01, real, resuelto y verificado). Matriz de riesgos: hecha (01/10; 13 riesgos al principio de riesgos.md). Estimaciones real/desvío: filas de calidad completas (01/10); falta el resto. Pendientes: uso-de-ia.md, demo.md, ensayos.
-7. Arreglos de la revisión de código de QA (testing.md §6), hechos el 30/09: #1 histórico vacío → "sin datos" y no error (H0-6), `8cdcd9a`; #2 fallas de GNews con rastro (BUG-01), `83587f6` (decisión de Mati: la línea de log pasa por `redactKey`, que tapa `apikey=…` si algún mensaje de error trajera la URL); #4 7/30/90 días = 7/30/90 fechas, `d0e289c` (test de blue 30 d endurecido a exactamente 30 fechas). 90 unitarios en verde. Efecto aceptado del #1: el histórico sin datos sale con `s-maxage=3600` en vez de `no-store` (arquitectura.md §6). QA verificó #1, #2 y #4 (testing.md §7) y encontró el #8: un histórico con formato cambiado se mostraba como "sin datos". Arreglado en `7bb6bf7` (30/09): `normalizeHistorico` devuelve `invalid` si la lista trae elementos pero ninguno válido; `empty` solo para la lista vacía. 92 unitarios y 23 e2e + 1 salteado en verde. No se arreglan: #3 (cuota de GNews mientras una búsqueda falla: documentado en riesgos.md el 30/09), #5, #6 y #7 (documentados en testing.md). QA verificó el #8 y encontró #9 y #10 (baja); Mati decidió arreglarlos: #10 en `e3d3166` (el gráfico dice "Brecha no disponible para este período" si falla el histórico del oficial) y #9 en `1eb36b1` (aviso y línea `[history]` si se descartaron puntos con formato inválido). 96 unitarios y 27 e2e + 1 salteado en verde (01/10). QA verificó #9 y #10 el 01/10 (testing.md §7) y encontró el #11 (baja): los puntos inválidos del histórico del oficial dejaban la brecha con huecos y sin aviso. Arreglado en `1c39d79` (01/10): en un paralelo, los descartados del oficial se suman a `skippedPoints` (mismo aviso en el gráfico) y el log deja `[history] oficial (brecha de <activo>): N…`. 98 unitarios y 27 e2e + 1 salteado en verde. Riesgo nuevo en riesgos.md: "Brecha no disponible" puede quedar hasta 1 h en el CDN después de que vuelve el oficial; queda a decisión de Mati, la cache no se toca.
-
-producto.md y estimaciones.md actualizados por el PO el 29/09 (desvíos de desarrollo, S7, alcance de diseño, real de Día 0 / Producto / arquitectura) y copiados al repo.
+Falta:
+1. QA, fase 2 (`claude/prompt-qa-cierre.md`): verificar el #12; caso 1 y pruebas manuales de testing.md §5 (Lighthouse, teclado), de Mati.
+2. demo.md: guion con minutos y apéndice técnico (chat Cliente, fase A).
+3. Dos ensayos con el chat Cliente.
+4. estimaciones.md: totales, filas de demo y cierre con horas.md final (PO, martes 06/10).
+5. Revisión final: /docs se lee sin preguntar, sin claves en el historial de git, `demo-mock` apuntando al último commit y su banner verificado en ventana privada.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
