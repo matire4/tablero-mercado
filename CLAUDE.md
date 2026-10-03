@@ -67,12 +67,12 @@ URL pública: https://tablero-mercado.vercel.app (deploy automático en cada pus
 Hecho al 01/10: producto, arquitectura, código (alcance base, feature 1, diseño, entrada, tutorial con avatar), README, tests (101 unitarios, 31 e2e + 1 salteado tras el descongelamiento del 02/10), QA (testing.md, bug-report.md con BUG-01 real, matriz de riesgos, hallazgos #1-#12 resueltos o documentados en testing.md §6), plan B verificado, uso-de-ia.md y real/desvío de desarrollo y calidad en estimaciones.md.
 
 Falta:
-1. QA: verificar el descongelamiento del 02/10 (`0496210` y `4bb415b`): e2e en verde, scroll bloqueado y avatar en bucle en celular a mano; decidir si los clics en el fondo con el tutorial abierto van como hallazgo #15; actualizar las cantidades de tests en testing.md.
-2. QA, fase 2 (`claude/prompt-qa-cierre.md`): verificar el #12; caso 1 y pruebas manuales de testing.md §5 (Lighthouse, teclado), de Mati.
-3. demo.md: guion con minutos y apéndice técnico (chat Cliente, fase A).
-4. Dos ensayos con el chat Cliente.
-5. estimaciones.md: totales, filas de demo y cierre con horas.md final (PO, martes 06/10).
-6. Revisión final: /docs se lee sin preguntar, sin claves en el historial de git, `demo-mock` apuntando al último commit y su banner verificado en ventana privada.
+1. QA: verificar el descongelamiento del 02/10 (`0496210` y `4bb415b`): e2e en verde, scroll bloqueado y avatar en bucle en celular a mano; anotar el hallazgo #15 (clics en el fondo con el tutorial abierto) según lo que decida Mati; actualizar las cantidades de tests en testing.md (101 unitarios, 31 e2e + 1 salteado).
+2. Mati: captura del caso 1 en celular (`docs/evidencia/caso1-happy-path-celular.png`), en horario de mercado. QA fase 2 ya cerrada el 02/10 salvo esa captura.
+3. demo.md: guion hecho el 02/10 (`577af5b`). Falta completar el [COMPLETAR] de horas del bloque 4 con el total final y cerrar las dos [DECISIÓN MATI] con el cronómetro del ensayo 1.
+4. Dos ensayos con el chat Cliente (lun 05 y mar 06).
+5. estimaciones.md: totales y filas de demo y cierre con horas.md final (PO, martes 06/10). Al 02/10: 43,08 h reales.
+6. Revisión final: /docs se lee sin preguntar, sin claves en el historial de git, `demo-mock` en `62f9b7c` (código `4bb415b`) con deploy creado a mano y banner verificado en ventana privada.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

@@ -201,7 +201,7 @@ Para darle entidad al producto en esta demo. Son tres clips cortos, decorativos:
 - Deploy: el push de `demo-mock` no generó un deploy (sin causa verificada); se creó a mano desde Deployments → ⋯ → Create Deployment → `demo-mock`. Tardó 14 s hasta Ready.
 
 **Antes de la demo:**
-- Estado al 02/10: `demo-mock` apunta a `37f7cb7`, con el mismo código que `db46eb5` (los commits entre los dos son solo docs). Después de cualquier push a esa rama, Vercel no crea el deploy solo: hay que crearlo a mano (Deployments → ⋯ → Create Deployment → `demo-mock`) y verificar el banner en ventana privada.
+- Estado al 02/10 (noche): `demo-mock` apunta a `62f9b7c`, con el mismo código que el congelado `4bb415b` (el commit entre los dos es solo docs). Deploy creado a mano y banner verificado en ventana privada: [PENDIENTE: Mati confirma y borra esta marca]. Después de cualquier push a esa rama, Vercel no crea el deploy solo: hay que crearlo a mano (Deployments → ⋯ → Create Deployment → `demo-mock`) y verificar el banner en ventana privada.
 - Después de congelar el código, apuntar la rama al commit congelado (`git push origin <hash>:demo-mock`) y, si no aparece un deploy nuevo, crearlo igual que arriba. Verificar el banner en ventana privada.
 - No usar `vercel deploy` desde la terminal para esta rama: esos deploys no quedan asociados a la rama y no toman sus variables ([guía de Vercel](https://vercel.com/kb/guide/branch-variables-and-domains-not-linked-to-cli-deployments)).
 - Los escenarios `viernes-cerrado` y `sin-oficial` no están en la URL del plan B (solo `normal`); mercado cerrado se muestra con la captura del caso 2 o, si hace falta en vivo, con el plan C.

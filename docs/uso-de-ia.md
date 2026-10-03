@@ -1,6 +1,6 @@
 # Uso de IA
 
-Cómo se usó la IA en el challenge, qué prompts pesaron más y dónde se equivocó. Todo sale de `docs/ai-log.md` (diario anotado en el momento, 48 entradas del 25/09 al 02/10), de las decisiones de `CLAUDE.md` y del historial de git. Cada error citado tiene su entrada en `ai-log.md` con la fecha indicada.
+Cómo se usó la IA en el challenge, qué prompts pesaron más y dónde se equivocó. Todo sale de `docs/ai-log.md` (diario anotado en el momento, 52 entradas del 25/09 al 02/10), de las decisiones de `CLAUDE.md` y del historial de git. Cada error citado tiene su entrada en `ai-log.md` con la fecha indicada.
 
 ## 1. Herramientas y cómo se usaron
 
@@ -40,6 +40,8 @@ El trabajo sobre el repo se hizo con Claude (Cowork) con la carpeta conectada: l
 - **Variación del día "contra el día hábil anterior"** (Tech Lead, 28/09). La dedujo de un solo histórico (blue); en oficial y MEP el sábado ya trae el cierre del viernes, y el lunes habría mostrado un movimiento que no existió. *Cómo se detectó:* el mismo Tech Lead, al bajar los otros históricos y compararlos. *Qué quedó:* verificar un patrón en todos los activos, no en uno; la regla final compara contra la última entrada anterior a la fecha del dato.
 - **"Casi seguro" se agotó la cuota de GNews** (QA, 30/09). Lo afirmó antes de mirar el consumo: el dashboard de GNews mostraba 10 requests ese día, de 100. *Cómo se detectó:* Mati mandó capturas del dashboard. *Qué quedó:* la hipótesis se descartó con evidencia; que la causa no se pudiera determinar se convirtió en el bug real (BUG-01, el error no dejaba rastro).
 - **Criterio H0-4 escrito antes de ver los datos** (PO, 26/09; detectado por QA el 30/09). Pedía "último cierre: día y hora" en las 5 tarjetas, pero ArgentinaDatos publica el riesgo país solo con fecha. *Cómo se detectó:* al escribir el e2e de mercado cerrado. *Qué quedó:* un criterio que describe datos se escribe después de ver la respuesta real del proveedor.
+
+- **Un defecto del avatar en Safari que no existía** (Tech Lead, 02/10). Con la descripción de Mati ("en el iPhone queda congelado en el paso 2") propuso una causa (la precarga o la URL repetida gastaban la animación) y un arreglo de ~1 h con URLs `blob:`, como hipótesis probable y sin evidencia. *Cómo se detectó:* antes de tocar código, una página de diagnóstico con seis pruebas aisladas corrida en el iPhone: todas las variantes se movían y todas quedaban quietas al terminar. El "congelado" era el comportamiento especificado el 01/10 en CLAUDE.md: cada clip se reproduce una vez y queda en su último cuadro. *Qué quedó:* antes de buscar la causa de un "se traba", comprobar que el síntoma no sea lo especificado; y ninguna hipótesis sobre el navegador se arregla sin reproducirla primero. Lo que Mati quería era otra cosa, un cambio de diseño (el gesto se repite con pausa), y así se hizo.
 
 ### Abstracción de más
 

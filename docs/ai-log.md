@@ -301,4 +301,5 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 
 ## 2026-10-02 · Decisiones de Mati durante el descongelamiento (no son errores; quedan registradas)
 - **Avatar en bucle (opción B):** los tres clips se repiten con 1,5 s de pausa en la pose de frente. Reemplaza la decisión del 01/10 ("se reproducen una vez"). Se descartaron dejarlo como estaba y grabar un gesto distinto por paso (1,5–2 h más la generación).
-- **Presupuesto:** "no importa que nos pasemos" para analizar el punto 2 a fondo. Real ~2,33 h contra 2 h (estimaciones.md, "Alcance agregado después de congelar").
+- **Presupuesto:** "no importa que nos pasemos" para analizar el punto 2 a fondo.
+- **Clics en el fondo con el tutorial abierto (02/10, con el PO):** se documenta como hallazgo #15 en testing.md §6 y no se arregla. Motivo: el scroll y el avatar ya estaban cerrados y verificados; un tercer descongelamiento en dos días (~45 min con QA, demo-mock y docs) por un caso que el guion de la demo no ejercita no justifica reabrir el código. Queda en próximos pasos: capa del tutorial que capture los clics. Real ~2,33 h contra 2 h (estimaciones.md, "Alcance agregado después de congelar").

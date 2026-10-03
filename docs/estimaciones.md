@@ -2,7 +2,7 @@
 
 **Estimado congelado el 26/09/2026** (fase Producto, antes de escribir código). La columna "Estimado" no se modifica más. "Real" y "Desvío" se completan al cerrar cada entregable a partir de `docs/horas.md`.
 
-Criterio de estimación: rango pesimista honesto, horas de trabajo propio. El presupuesto del challenge es 25-30 h en 10 días (**28 h** es el punto medio; `horas.md` y `CLAUDE.md` lo llaman "escenario base"); el escenario realista declarado desde el día 1 es **30-32 h**, porque no todo sale en el piso del rango. Ver al final el alcance agregado después de congelar, que lo lleva a 37,5-41,5 h.
+Criterio de estimación: rango pesimista honesto, horas de trabajo propio. El presupuesto del challenge es 25-30 h en 10 días (**28 h** es el punto medio; `horas.md` y `CLAUDE.md` lo llaman "escenario base"); el escenario realista declarado desde el día 1 es **30-32 h**, porque no todo sale en el piso del rango. Ver al final el alcance agregado después de congelar, que lo lleva a 39,5-43,5 h (al 02/10).
 
 ---
 
@@ -55,6 +55,7 @@ Criterio de estimación: rango pesimista honesto, horas de trabajo propio. El pr
 | **Total** | **26.5 – 38** | |
 | **Escenario realista declarado** | **30 – 32** | |
 | **Escenario realista con alcance agregado (28/09)** | **33 – 36** | |
+| **Escenario realista con todo el alcance agregado (al 02/10)** | **39.5 – 43.5** | |
 
 ---
 
