@@ -280,3 +280,25 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 **Por qué importa:** la segunda es la correcta; la primera era trabajo manual duplicado.
 **Cómo lo detecté:** el QA se corrigió solo.
 **Qué hice:** verificación por e2e, con la evidencia de que falla con el código anterior (`evidencia/e2e-12-antes-despues-02-10.txt`).
+
+## 2026-10-02 · Tech Lead (descongelamiento del código)
+**Por qué se descongeló:** dos defectos de UX del tutorial que se ven en la demo. Lo decidió Mati el 02/10, con alcance cerrado (solo esos dos) y 2 h de presupuesto: (1) con el tutorial abierto se podía scrollear la página de fondo, en escritorio y en celular; (2) en celular el avatar "se trababa" al ir y volver entre pasos.
+**Qué se tocó:** `0496210`: el scroll de la página se bloquea mientras el tutorial está abierto (`Tutorial.tsx`) y hay un e2e nuevo × 2 viewports (rueda, teclas y gesto táctil; al cerrar vuelve a scrollear desde donde quedó). `4bb415b`: los tres clips del avatar se repiten con 1,5 s de pausa (solo el contenedor WebP: repeticiones y duración del último cuadro, sin recodificar) y hay un unitario sobre los archivos. CLAUDE.md al día. 101 unitarios, 31 e2e + 1 salteado, en verde en la Mac de Mati.
+**Qué no se tocó:** con el tutorial abierto se puede hacer clic en el fondo (links de noticias, chips del gráfico, tema), porque `.tour-layer` tiene `pointer-events: none`. Contradice "la única interacción es el tutorial", pero estaba fuera del alcance: queda propuesto como hallazgo de QA. Tampoco se tocaron el doble buffer ni las URLs `?n=` de los clips.
+**Resultado del punto 2:** la hipótesis del prompt (con toques rápidos se encolan cargas y gana una que no es la del paso actual) no se confirmó: 36 corridas en Chromium (escritorio y Pixel 7, tres velocidades de toque, con y sin CPU y red lentas) y capturas cada ~150 ms mostraron siempre el clip del paso actual. Lo que Mati veía como "trabado" era el diseño del 01/10: cada clip se reproducía una vez y quedaba en la pose de frente. Mati eligió que se repita (opción B, sobre dejarlo o grabar un gesto distinto por paso).
+
+## 2026-10-02 · Tech Lead (scroll del tutorial)
+**Qué propuso:** bloquear el scroll y dar por cumplido "al cerrar, la página queda donde la dejó el tutorial", sin revisar qué pasa al cerrar.
+**Por qué estaba mal:** al cerrar, `focus()` devuelve el foco al botón "¿Cómo leer esto?" y, por defecto, lleva la página hasta el botón (MDN, `HTMLElement.focus`): la página volvía arriba.
+**Cómo lo detecté:** el e2e nuevo falló en ese paso (`scrollY` de 542 a 0 en escritorio, de 1359 a 0 en celular).
+**Qué hice:** `focus({ preventScroll: true })`. Contra: con teclado, el foco queda en un botón que puede estar fuera de la pantalla; el próximo Tab sigue desde ahí. Se le explicó a Mati con el resultado del paso 1.
+
+## 2026-10-02 · Tech Lead (avatar en Safari)
+**Qué propuso:** con la descripción de Mati ("en el iPhone queda congelado en el paso 2"), que en Safari había un defecto real (la precarga del paso siguiente o volver a la misma URL gastaban la animación) y un arreglo con URLs `blob:` (~1 h).
+**Por qué estaba mal:** era una hipótesis sin evidencia, presentada como probable. En una página de diagnóstico con seis pruebas aisladas (control, precargada, oculta hasta decodificar, misma URL al volver, camino real de la app, `blob:`), en el iPhone todas se movieron y todas quedaron quietas al terminar. Ni la precarga ni la URL repetida traban el clip: el "congelado" era el clip terminado a propósito.
+**Cómo lo detecté:** Mati corrió la página de diagnóstico en el celular.
+**Qué hice:** se descartó el arreglo antes de escribirlo. Aprendizaje: antes de buscar la causa de un "se traba", comprobar que el síntoma no sea el comportamiento especificado; acá estaba escrito en CLAUDE.md ("se reproducen UNA vez y quedan en su último cuadro").
+
+## 2026-10-02 · Decisiones de Mati durante el descongelamiento (no son errores; quedan registradas)
+- **Avatar en bucle (opción B):** los tres clips se repiten con 1,5 s de pausa en la pose de frente. Reemplaza la decisión del 01/10 ("se reproducen una vez"). Se descartaron dejarlo como estaba y grabar un gesto distinto por paso (1,5–2 h más la generación).
+- **Presupuesto:** "no importa que nos pasemos" para analizar el punto 2 a fondo. Real ~2,33 h contra 2 h (estimaciones.md, "Alcance agregado después de congelar").
