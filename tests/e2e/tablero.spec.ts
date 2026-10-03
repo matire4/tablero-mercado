@@ -135,6 +135,51 @@ test('Tutorial · se abre desde "¿Cómo leer esto?", resalta cada paso, Esc cie
   expect(await page.evaluate(() => localStorage.getItem('tutorial-seen'))).toBe('1');
 });
 
+/** Intenta scrollear como un usuario: rueda y teclas en los dos viewports; en celular, además, arrastre con el dedo. */
+async function userScroll(page: import('@playwright/test').Page, mobile: boolean, dir: 'up' | 'down') {
+  const sign = dir === 'up' ? -1 : 1;
+  const { width, height } = page.viewportSize()!;
+  await page.mouse.move(width / 2, height / 3); // sobre el fondo oscurecido, no sobre el globo
+  await page.mouse.wheel(0, sign * 600);
+  for (const key of dir === 'up' ? ['PageUp', 'ArrowUp', 'Home'] : ['PageDown', 'ArrowDown', 'End']) await page.keyboard.press(key);
+  if (mobile) {
+    // Gesto táctil real del navegador (CDP): el dedo baja para scrollear hacia arriba y viceversa.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.synthesizeScrollGesture', { x: width / 2, y: height / 3, yDistance: -sign * 400, gestureSourceType: 'touch' });
+    await cdp.detach();
+  }
+  await page.waitForTimeout(300); // que termine cualquier scroll suave
+}
+const scrollY = (page: import('@playwright/test').Page) => page.evaluate(() => window.scrollY);
+
+test('Tutorial · abierto, la página de fondo no scrollea (rueda, teclas, dedo); al cerrarlo vuelve a scrollear desde donde quedó', async ({ page }, info) => {
+  const mobile = info.project.name === 'celular';
+  await expect(page.locator('.card .card-value')).toHaveCount(5);
+  await page.getByRole('button', { name: '¿Cómo leer esto?' }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('Paso 1 de 4');
+  for (const n of [2, 3, 4]) {
+    await dialog.getByRole('button', { name: 'Siguiente' }).click();
+    await expect(dialog).toContainText(`Paso ${n} de 4`);
+  }
+  // El scroll programático del tutorial sigue andando: el paso 4 (noticias) está más abajo y queda recuadrado.
+  await expect.poll(() => boxOffset(page, 'noticias')).toBeLessThanOrEqual(2);
+  const y = await scrollY(page);
+  expect(y).toBeGreaterThan(0);
+
+  await userScroll(page, mobile, 'up');
+  expect(await scrollY(page)).toBe(y);
+  await userScroll(page, mobile, 'down');
+  expect(await scrollY(page)).toBe(y);
+  await expect(dialog).toContainText('Paso 4 de 4'); // ninguna tecla cerró ni movió el tutorial
+
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  expect(await scrollY(page)).toBe(y); // queda donde lo dejó el tutorial
+  await userScroll(page, mobile, 'up');
+  await expect.poll(() => scrollY(page)).toBeLessThan(y);
+});
+
 test('Tutorial · la primera vez se abre solo con la bienvenida; Empezar va al paso 1 y Saltar lo cierra', async ({ page }) => {
   // Este init script corre después del de beforeEach y borra la marca solo en la primera recarga
   // (las siguientes navegaciones también lo corren: sin la bandera, el tutorial nunca quedaría "visto").

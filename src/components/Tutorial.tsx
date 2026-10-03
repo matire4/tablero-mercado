@@ -9,10 +9,11 @@ const WELCOME = -1; // la bienvenida no cuenta como paso
 
 /**
  * Avatar del tutorial: tres clips de un mismo video del Memoji de Mati (generado con Kling sobre verde, 01/10), sin
- * fondo y en WebP animado con transparencia, que anda en Chrome, Firefox y Safari. Cada clip se reproduce UNA vez y
- * queda en su último cuadro, que es la pose de frente: así no hay cambio de imagen al terminar (antes el saludo
- * pasaba a un clip de reposo que no estaba cargado y el avatar desaparecía un instante). Los clips empiezan y terminan
- * en la misma pose, así que encadenan sin saltos. Para prefers-reduced-motion hay un cuadro fijo (-0.webp).
+ * fondo y en WebP animado con transparencia, que anda en Chrome, Firefox y Safari. Cada clip se repite mientras su paso
+ * está abierto (02/10: quieto se veía "congelado"), con 1,5 s en la pose de frente entre repeticiones: el bucle y la
+ * pausa están en el propio archivo (cantidad de repeticiones 0 y duración del último cuadro; tests/unit/avatar-clips).
+ * Los clips empiezan y terminan en la misma pose, así que repiten y encadenan sin saltos. Para prefers-reduced-motion
+ * hay un cuadro fijo (-0.webp).
  * Son decorativos (aria-hidden) y se cambian sin tocar la lógica: en un banco va su mascota o se sacan (docs/demo.md).
  * saludo: bienvenida · paso: señala y vuelve, en cada paso · cierre: guiño y pulgar arriba, en el último paso.
  */
@@ -95,7 +96,9 @@ export function Tutorial({ ready }: { ready: boolean }) {
   const close = useCallback(() => {
     setChoice(false);
     try { localStorage.setItem(STORAGE_KEY, '1'); } catch { /* sin storage: se vuelve a abrir solo la próxima vez */ }
-    buttonRef.current?.focus();
+    // Sin preventScroll, focus() lleva la página hasta el botón (MDN, HTMLElement.focus): la página tiene que quedar
+    // donde la dejó el tutorial. El foco vuelve igual al botón; el próximo Tab sigue desde ahí.
+    buttonRef.current?.focus({ preventScroll: true });
   }, []);
 
   return (
@@ -146,6 +149,31 @@ function TourLayer({ step, setStep, onClose, run }: LayerProps) {
 
   // Al abrir, el foco va al diálogo.
   useEffect(() => { panelRef.current?.focus(); }, []);
+
+  // Diálogo modal: mientras está abierto, la página de fondo no scrollea. overflow: hidden en <html> (se aplica al
+  // viewport) corta rueda, teclas y dedo, y deja el scroll programático de cada paso (scrollIntoView): MDN, overflow,
+  // valor hidden. Al cerrar no se toca la posición: queda donde la dejó el tutorial. iOS Safari ignora ese overflow con
+  // la barra colapsada o con zoom (web-platform-tests/interop#788), así que además se cancela touchmove y wheel; en
+  // document son pasivos por defecto y preventDefault no haría nada sin passive: false (MDN, addEventListener). El
+  // pellizco (dos dedos) se deja pasar: bloquear el zoom es un problema de accesibilidad.
+  useEffect(() => {
+    const html = document.documentElement;
+    const prev = { overflow: html.style.overflow, gutter: html.style.scrollbarGutter };
+    html.style.overflow = 'hidden';
+    html.style.scrollbarGutter = 'stable'; // con barras clásicas (Windows) el ancho no salta al ocultarla
+    const block = (e: TouchEvent | WheelEvent) => {
+      if ('touches' in e && e.touches.length > 1) return;
+      e.preventDefault();
+    };
+    document.addEventListener('touchmove', block, { passive: false });
+    document.addEventListener('wheel', block, { passive: false });
+    return () => {
+      html.style.overflow = prev.overflow;
+      html.style.scrollbarGutter = prev.gutter;
+      document.removeEventListener('touchmove', block);
+      document.removeEventListener('wheel', block);
+    };
+  }, []);
 
   // El clip del paso siguiente se pide mientras se lee este, para que esté al llegar.
   useEffect(() => {
