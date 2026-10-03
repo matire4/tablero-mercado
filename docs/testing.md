@@ -3,7 +3,7 @@
 Plan, cobertura contra los criterios de aceptación y casos de prueba documentados.
 Escrito por el rol QA (30/09/2026), que no participó del desarrollo. La definición de terminado son los criterios Given/When/Then de `docs/producto.md`.
 
-**Estado al 02/10:** sobre el código congelado (`4bb415b`, después del descongelamiento del 02/10), 101 tests unitarios y 31 e2e en verde, más 1 salteado a propósito (H0-7 solo aplica al viewport de celular), en un clon limpio (§7). `npm run check` (tipos + lint + unitarios) y `npm run test:e2e`. Pruebas manuales hechas: casos 1 a 3, Lighthouse en celular y recorrido con teclado (§5).
+**Estado al 02/10:** sobre el código congelado (`4bb415b`, después del descongelamiento del 02/10), 101 tests unitarios y 31 e2e en verde, más 1 salteado a propósito (H0-7 solo aplica al viewport de celular), en un clon limpio (§7). `npm run check` (tipos + lint + unitarios) y `npm run test:e2e`. Pruebas manuales hechas: casos 1 a 3, Lighthouse en celular, recorrido con teclado (§5) y tutorial en iPhone tras el descongelamiento (§7).
 
 ---
 
@@ -240,7 +240,7 @@ Sobre `62f9b7c` (`main` en GitHub, código en `4bb415b`), en un clon limpio con 
 | "Sin recodificar" | **Verificado** | `cmp` entre los WebP de `577af5b` y `4bb415b`: **3 bytes distintos por archivo** (cantidad de repeticiones en `ANIM` y duración del último `ANMF`), mismo peso (474.194 / 301.698 / 160.994 B; `riesgos.md` fila 10 sin cambios). Cuadros: saludo 36, paso 33, cierre 15, todos de 67 ms salvo el último (1.567 ms). Ciclo: 3,9 / 3,7 / 2,5 s, como dice `CLAUDE.md`. |
 | Hallazgo #15 | **Confirmado; se documenta** | En el código (`.tour-layer` con `pointer-events: none`), en Chromium (botón de tema, "7 d", "¿Cómo leer esto?") y por el PO en el plan B (título de noticia). Documentado sin arreglar (§6, #15). |
 | Plan B en la URL de preview (verificación cruzada) | **Verificado por el PO; QA no lo repitió** | Deploy de Preview `62f9b7c` (Ready, código igual a `4bb415b`), 02/10 a la noche: banner "Datos de demostración", datos del fixture (blue $ 1.560, riesgo país 609), `overflow: hidden` en `html` con el tutorial abierto (la página no se mueve con la rueda) y avatar en bucle. Fue en escritorio: no reemplaza la prueba con el dedo en el iPhone de la fila siguiente (`demo.md`, "Plan B"). |
-| A mano en celular, producción y plan B | **Pendiente (Mati, 02/10)** | En un iPhone con Safari y la barra colapsada: (1) con el tutorial abierto, el fondo no scrollea con el dedo; (2) el paso 4 baja solo hasta noticias; (3) al cerrar con Entendido o con Saltar, la página queda en el mismo lugar y vuelve a scrollear; (4) el avatar repite el gesto en cada paso, también después de tocar Anterior y Siguiente varias veces. |
+| A mano en celular (producción) | **Verificado (Mati, 02/10)** | iPhone con Safari, en https://tablero-mercado.vercel.app, con la barra de direcciones colapsada antes de abrir el tutorial: (1) con el tutorial abierto, el fondo no se mueve con el dedo, ni para arriba ni para abajo; (2) el paso 4 baja solo hasta noticias; (3) Anterior y Siguiente varias veces: el avatar repite el gesto en cada paso; (4) al cerrar con Entendido, la página queda donde estaba y vuelve a scrollear con el dedo. Es la única evidencia de la parte de iOS del arreglo (ver fila "Parte de iOS"). Sin captura: resultado informado por Mati. El plan B tiene el mismo código (`62f9b7c`, código de `4bb415b`) y lo verificó el PO en escritorio (fila anterior). |
 
 ---
 
