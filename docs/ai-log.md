@@ -303,3 +303,9 @@ Cada vez que un chat propone algo mal, lleva a una abstracción innecesaria, inv
 - **Avatar en bucle (opción B):** los tres clips se repiten con 1,5 s de pausa en la pose de frente. Reemplaza la decisión del 01/10 ("se reproducen una vez"). Se descartaron dejarlo como estaba y grabar un gesto distinto por paso (1,5–2 h más la generación).
 - **Presupuesto:** "no importa que nos pasemos" para analizar el punto 2 a fondo.
 - **Clics en el fondo con el tutorial abierto (02/10, con el PO):** se documenta como hallazgo #15 en testing.md §6 y no se arregla. Motivo: el scroll y el avatar ya estaban cerrados y verificados; un tercer descongelamiento en dos días (~45 min con QA, demo-mock y docs) por un caso que el guion de la demo no ejercita no justifica reabrir el código. Queda en próximos pasos: capa del tutorial que capture los clics. Real ~2,33 h contra 2 h (estimaciones.md, "Alcance agregado después de congelar").
+
+## 2026-10-02 · PO
+**Qué propuso:** que Mati creara "otro" deploy de `demo-mock` porque el plan B seguía sirviendo el código viejo.
+**Por qué estaba mal:** el deploy de Preview en `62f9b7c` ya existía y estaba Ready; el PO lo dio por pendiente leyendo el resumen del Tech Lead en vez de mirar Vercel.
+**Cómo lo detecté:** Mati preguntó "¿por qué me hacés hacer otro?"; el PO abrió Deployments en Vercel y la URL del plan B y verificó banner, scroll bloqueado y avatar en bucle.
+**Qué hice:** sin deploy nuevo; demo.md actualizado con la verificación (`ec50d13`). Misma lección que el 02/10 a la mañana: verificar en la fuente antes de pedir trabajo.
