@@ -2,7 +2,7 @@
 
 ## Estado
 Fase actual: cierre y demo (producto cerrado el 26/09/2026; desarrollo y primera fase de QA cerrados el 01/10).
-Día 3 de 10 (día 0 = 28/09). Entrega: miércoles 07/10; demo jueves 08 o viernes 09/10 (propuesto a Rubika el 28/09). Horas reales: 35,83 al 01/10 (docs/horas.md), contra 28 del escenario base y 37,5–41,5 del realista con todo el alcance agregado (docs/estimaciones.md).
+Día 3 de 10 (día 0 = 28/09). Entrega: propuesta el 28/09 para el miércoles 07/10; demo reprogramada para el martes 13/10, fecha de entrega del repo a confirmar con Rubika (06/10). Horas reales: 44,08 al 02/10 (docs/horas.md), contra 28 del escenario base y 37,5–41,5 del realista con todo el alcance agregado (docs/estimaciones.md).
 Código congelado el 01/10 en el commit `db46eb5`; descongelado el 02/10 para dos arreglos del tutorial; congelado de nuevo en `4bb415b`. Cambios solo por bug bloqueante, con entrada en docs/ai-log.md y docs/bug-report.md.
 
 URL pública: https://tablero-mercado.vercel.app (deploy automático en cada push a main). Plan B de la demo: https://tablero-mercado-git-demo-mock-matias-projects-d0bd5617.vercel.app (rama `demo-mock` en modo mock; ver docs/demo.md, "Plan B").
@@ -71,7 +71,7 @@ Falta:
 2. Mati: captura del caso 1 en celular (`docs/evidencia/caso1-happy-path-celular.png`), en horario de mercado. QA fase 2 ya cerrada el 02/10 salvo esa captura.
 3. demo.md: guion hecho el 02/10 (`577af5b`). Falta completar el [COMPLETAR] de horas del bloque 4 con el total final y cerrar las dos [DECISIÓN MATI] con el cronómetro del ensayo 1.
 4. Dos ensayos con el chat Cliente (lun 05 y mar 06).
-5. estimaciones.md: totales y filas de demo y cierre con horas.md final (PO, martes 06/10). Al 02/10: 43,08 h reales.
+5. estimaciones.md: totales y filas de demo y cierre con horas.md final (PO, antes de la entrega). Al 02/10: 44,08 h reales.
 6. Revisión final: /docs se lee sin preguntar, sin claves en el historial de git, `demo-mock` en `62f9b7c` (código `4bb415b`) con deploy creado a mano y banner verificado en ventana privada.
 
 <!-- BEGIN:nextjs-agent-rules -->
