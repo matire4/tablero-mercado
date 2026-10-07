@@ -70,6 +70,24 @@ Los nombres están en [`.env.example`](.env.example). Ningún valor real va al r
 
 **APIs:** [DolarAPI](https://dolarapi.com) (cotizaciones), [ArgentinaDatos](https://argentinadatos.com) (riesgo país, histórico, feriados) y [GNews](https://gnews.io) (noticias, plan gratis: 100 consultas por día y hasta 12 h de demora).
 
+## Cómo leer esta entrega
+
+Todo lo que pide la consigna está en `/docs`. Si tenés poco tiempo, este orden alcanza:
+
+| Pide la consigna | Dónde |
+|---|---|
+| Usuario y problema; dos funcionalidades con valor y esfuerzo; descartes | [`producto.md`](docs/producto.md) §1, §4 |
+| Historias de usuario con Given/When/Then y Definition of Done | [`producto.md`](docs/producto.md) §5 |
+| Estimación antes de codear y real vs. estimado con desvíos | [`estimaciones.md`](docs/estimaciones.md) (resumen en "Total") |
+| Arquitectura, claves, caché y límites de uso | [`arquitectura.md`](docs/arquitectura.md) |
+| Uso de IA: herramientas, prompts clave, errores | [`uso-de-ia.md`](docs/uso-de-ia.md) |
+| Plan de testing, tres casos y evidencia | [`testing.md`](docs/testing.md) §1, §4, §8 |
+| Bug report | [`bug-report.md`](docs/bug-report.md) |
+| Matriz de riesgos | [`riesgos.md`](docs/riesgos.md) |
+| Demo y plan B | [`demo.md`](docs/demo.md) |
+
+Sobre los "roles" que aparecen en los docs (PO, Tech Lead, QA, Cliente): son chats de IA separados por función dentro de un mismo proyecto, que trabajé yo. Cuando un doc dice "QA, que no participó del desarrollo", quiere decir un chat que revisó el código sin recibir el razonamiento de diseño. Cómo se usó y dónde se equivocó: `uso-de-ia.md`. Los hashes y números de hallazgo (#1 a #15) son trazabilidad: cada uno lleva a un commit o a una fila de `testing.md` §6.
+
 ## Documentación
 
 | Doc | Contenido |
@@ -91,6 +109,9 @@ Los nombres están en [`.env.example`](.env.example). Ningún valor real va al r
 
 - Datos con demora de minutos (fuentes gratuitas); cada dato muestra de cuándo es.
 - Ventana de mercado única y simplificada: lunes a viernes de 10 a 18 (hora Argentina), más feriados nacionales.
-- Noticias con hasta 12 h de demora; el tema se asigna por palabras del título, que es una aproximación.
+- Noticias con hasta 12 h de demora; el tema se asigna por palabras del título, que es una aproximación. Las notas en inglés son de mercado internacional; las de español suelen concentrarse en un medio.
+- La brecha de la tarjeta es un recargo fijo sobre el oficial, no una brecha de mercado (`docs/riesgos.md` fila 15).
+- Alojado en el plan Hobby de Vercel, que es para uso no comercial; producción necesita un plan comercial (`docs/riesgos.md` fila 14).
+- Sin integración continua: los tests se corren a mano con `npm run check` y `npm run test:e2e`. `next build` necesita internet por las tipografías de Google.
 
 *La información de este tablero no constituye recomendación de inversión.*

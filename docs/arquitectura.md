@@ -103,7 +103,7 @@ Tres reglas que ordenan todo:
 │       ├── ThemeToggle.tsx       tema claro / oscuro
 │       ├── DoorsIntro.tsx        entrada "puertas": decide cuándo abrir el telón (CSS sobre html[data-intro])
 │       └── Tutorial.tsx          botón "¿Cómo leer esto?" + tutorial de 4 pasos con avatar animado y globo de cómic; anclas data-tutorial
-├── public/avatar/                clips del avatar del tutorial sin fondo (saludo, paso, cierre: WebP animado 520×327 que se reproduce una vez, ~0,9 MB, + cuadro fijo para prefers-reduced-motion); del video de Kling del 01/10
+├── public/avatar/                clips del avatar del tutorial sin fondo (saludo, paso, cierre: WebP animado 520×327 que se repite con 1,5 s de pausa mientras el paso está abierto (desde el 02/10; antes se reproducía una vez), ~0,9 MB, + cuadro fijo para prefers-reduced-motion); del video de Kling del 01/10
 └── tests/
     ├── unit/                     Vitest: business-days, change, market-status, brecha, adaptadores con MSW
     └── e2e/                      Playwright en modo mock, escritorio y celular: tarjetas, brecha, gráfico, noticias, proveedor caído, responsive

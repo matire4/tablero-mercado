@@ -1,6 +1,6 @@
 # Uso de IA
 
-Cómo se usó la IA en el challenge, qué prompts pesaron más y dónde se equivocó. Todo sale de `docs/ai-log.md` (diario anotado en el momento, 52 entradas del 25/09 al 02/10), de las decisiones de `CLAUDE.md` y del historial de git. Cada error citado tiene su entrada en `ai-log.md` con la fecha indicada.
+Cómo se usó la IA en el challenge, qué prompts pesaron más y dónde se equivocó. Todo sale de `docs/ai-log.md` (diario anotado en el momento, 54 entradas del 25/09 al 07/10), de las decisiones de `CLAUDE.md` y del historial de git. Cada error citado tiene su entrada en `ai-log.md` con la fecha indicada.
 
 ## 1. Herramientas y cómo se usaron
 
@@ -58,7 +58,7 @@ El trabajo sobre el repo se hizo con Claude (Cowork) con la carpeta conectada: l
 
 ### Datos del proyecto mal copiados
 
-- **Entrega "08/10" en `CLAUDE.md`** (Tech Lead, 29/09). La fecha enviada a Rubika es el miércoles 07/10; el 08/10 era el día 10 contado desde el 28/09. En el mismo archivo, una línea contradecía una decisión cerrada (días hábiles en la variación del día). *Cómo se detectó:* al abrir un chat nuevo de Tech Lead, releyendo `CLAUDE.md` contra el código y el mail. *Qué quedó:* corregido en `CLAUDE.md` y `horas.md`.
+- **Entrega "08/10" en `CLAUDE.md`** (Tech Lead, 29/09). La fecha propuesta a Rubika el 28/09 fue el miércoles 07/10; el 08/10 era el día 10 contado desde el 28/09 (después, la demo se reprogramó al martes 13/10). En el mismo archivo, una línea contradecía una decisión cerrada (días hábiles en la variación del día). *Cómo se detectó:* al abrir un chat nuevo de Tech Lead, releyendo `CLAUDE.md` contra el código y el mail. *Qué quedó:* corregido en `CLAUDE.md` y `horas.md`.
 
 ### Al revés: donde verificar evitó el error
 
@@ -69,6 +69,6 @@ El trabajo sobre el repo se hizo con Claude (Cowork) con la carpeta conectada: l
 
 1. Los errores más caros de la IA fueron afirmaciones sin mirar (la variación por día hábil, la cuota de GNews, Recharts); las reglas que más rindieron fueron las que obligan a verificar antes: curl antes del adaptador, `tsc` antes del test, `npm view` antes de instalar.
 2. Los tests que escribe el mismo rol que escribe el código tienden a describir el código: el e2e de H0-6 y el test de "blue 30 días" pasaban con el error adentro. El rol adversarial, sin el razonamiento de diseño, fue el que los encontró.
-3. El alcance creció después de congelar la estimación: diseño (3–4 h, 28/09) y el avatar del tutorial en tres vueltas (29/09 y 01/10). Cada agregado se registró con su costo en `estimaciones.md`, "Alcance agregado después de congelar", en vez de esconderse en las filas congeladas; por eso el total (35,83 h al 01/10; el número vigente está en `docs/horas.md`) se puede explicar línea por línea contra las 28 h del escenario base.
+3. El alcance creció después de congelar la estimación: diseño (3–4 h, 28/09), el avatar del tutorial en cuatro vueltas (29/09 y 01/10) y un descongelamiento del código para dos ajustes del tutorial (02/10). Cada agregado se registró con su costo en `estimaciones.md`, "Alcance agregado después de congelar", en vez de esconderse en las filas congeladas; por eso el total (46,08 h al 07/10, sin ensayos; `docs/horas.md`) se puede explicar línea por línea: el alcance congelado se hizo en 31,75 h, dentro del rango estimado, y el resto es alcance agregado, arreglos de hallazgos y sesiones de cierre por reloj (`estimaciones.md`, "Total").
 4. El repo como memoria compartida funcionó, pero `CLAUDE.md` se desactualiza solo si nadie lo relee: la fecha de entrega mal copiada y la contradicción sobre días hábiles aparecieron al abrir un chat nuevo.
 5. Para lo visual, la IA necesita una referencia y un video, no una descripción y capturas: los mockups necesitaron dos vueltas antes de acertar y el avatar "que parecía mover una hoja de papel" solo se vio en una grabación (ai-log 29/09).

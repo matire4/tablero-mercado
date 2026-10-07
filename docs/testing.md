@@ -75,7 +75,7 @@ El e2e siempre corre en modo mock (`playwright.config.ts` fuerza `USE_MOCK_DATA=
 | **Resultado esperado** | Píldora "Mercado abierto · datos de hace X". 5 tarjetas con valor, variación "hoy" y "hace X min". Brecha con un decimal en blue, MEP y tarjeta. Disclaimer visible sin scroll. Gráfico de un paralelo con panel de brecha debajo. Noticias con etiquetas ES y EN, sin aviso de fuente caída. En celular, una columna, sin corte. |
 | **Resultado real** | **Escritorio, 01/10 12:33 hora Argentina, tema claro: ✔ coincide.** Píldora "Mercado abierto · datos de hace 2 min". Blue $ 1.555 (−0,3 % hoy, brecha +0,6 %, hace 35 min), MEP $ 1.548,9 (−0,5 %, +0,3 %), oficial $ 1.545 ("Referencia para la brecha", hace 3 h), tarjeta $ 2.008,5 (+30,0 %), riesgo país 607 ("dato del 30/09", "Sin brecha"). Disclaimer bajo el título. Blue 30 d (02/09 a 30/09) con el panel "Brecha vs oficial (%)" debajo. Noticias: 18 notas en la captura, con ES y EN, cada una con medio, "hace X", idioma y tema; sin aviso de fuente caída. **Celular:** *pendiente, captura del 02/10 en horario de mercado.* |
 | **Observación** | La captura muestra Blue a 30 d, no MEP a 90 d como decían los pasos originales: el cambio de activo y de rango quedó probado en el recorrido con teclado (§5, pasos 10 y 12) y en el e2e de H0-2. Coincide con lo ya documentado en `riesgos.md` fila 2: las notas en inglés son de mercado internacional y las de español que se ven son todas de Clarín. Sobre H0-2, ver §6 #14. |
-| **Evidencia** | `docs/evidencia/caso1-happy-path-escritorio.png`, `caso1-noticias-escritorio.png`, `caso1-happy-path-celular.png` (pendiente). |
+| **Evidencia** | `docs/evidencia/caso1-happy-path-escritorio.png`, `caso1-noticias-escritorio.png`, Celular: no se tomó captura manual (al cierre de la documentación, el 07/10 a la noche, el mercado estaba cerrado); la vista de celular del happy path está cubierta por el e2e de H0-7 en Pixel 7 y por las capturas de celular del caso 2. |
 
 ### Caso 2 · Edge: viernes después del cierre (escenario mock `viernes-cerrado`)
 
@@ -252,7 +252,6 @@ Todo en `docs/evidencia/`.
 |---|---|---|
 | `caso1-happy-path-escritorio.png` | URL pública en mercado abierto: píldora, 5 tarjetas, disclaimer, Blue 30 d con brecha (01/10 12:33) | Caso 1 |
 | `caso1-noticias-escritorio.png` | Panel de noticias en producción con notas ES y EN, sin aviso de fuente caída | Caso 1 |
-| `caso1-happy-path-celular.png` | *Pendiente (02/10)* | Caso 1 |
 | `caso2-viernes-cerrado-escritorio.png` | Mock `viernes-cerrado`: mercado cerrado, último cierre, variación "en la rueda" | Caso 2 |
 | `caso2-viernes-cerrado-celular.png` | Lo mismo en celular, apilado y sin scroll horizontal | Caso 2 |
 | `caso3-noticias-parcial-escritorio.png` | Reproducción local de la respuesta del 29/09: solo notas ES y el aviso de fuente caída | Caso 3, BUG-01 |

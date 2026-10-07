@@ -1,8 +1,8 @@
 # Rubika — Tablero de mercado
 
 ## Estado
-Fase actual: cierre y demo (producto cerrado el 26/09/2026; desarrollo y primera fase de QA cerrados el 01/10).
-Día 3 de 10 (día 0 = 28/09). Entrega: propuesta el 28/09 para el miércoles 07/10; demo reprogramada para el martes 13/10, fecha de entrega del repo a confirmar con Rubika (06/10). Horas reales: 44,08 al 02/10 (docs/horas.md), contra 28 del escenario base y 37,5–41,5 del realista con todo el alcance agregado (docs/estimaciones.md).
+Fase actual: entrega y demo. Producto cerrado el 26/09/2026; desarrollo y QA cerrados el 01/10; código congelado en `4bb415b` el 02/10; documentación cerrada el 07/10.
+Fechas: el 28/09 se propuso a Rubika entregar el miércoles 07/10; la demo quedó para el martes 13/10. Horas reales: 46,08 al 07/10, sin los ensayos de la demo (docs/horas.md; reparto y desvíos en docs/estimaciones.md). Estimado congelado: 26,5-38 h; realista declarado 30-32; con todo el alcance agregado, 39,5-43,5.
 Código congelado el 01/10 en el commit `db46eb5`; descongelado el 02/10 para dos arreglos del tutorial; congelado de nuevo en `4bb415b`. Cambios solo por bug bloqueante, con entrada en docs/ai-log.md y docs/bug-report.md.
 
 URL pública: https://tablero-mercado.vercel.app (deploy automático en cada push a main). Plan B de la demo: https://tablero-mercado-git-demo-mock-matias-projects-d0bd5617.vercel.app (rama `demo-mock` en modo mock; ver docs/demo.md, "Plan B").
@@ -63,16 +63,10 @@ URL pública: https://tablero-mercado.vercel.app (deploy automático en cada pus
 - Si algo va a llevar más horas que docs/estimaciones.md, avisar antes de hacerlo.
 - Los docs viven en /docs con los nombres ya definidos.
 
-## Pendiente
-Hecho al 01/10: producto, arquitectura, código (alcance base, feature 1, diseño, entrada, tutorial con avatar), README, tests (101 unitarios, 31 e2e + 1 salteado tras el descongelamiento del 02/10), QA (testing.md, bug-report.md con BUG-01 real, matriz de riesgos, hallazgos #1-#12 resueltos o documentados en testing.md §6), plan B verificado, uso-de-ia.md y real/desvío de desarrollo y calidad en estimaciones.md.
+## Estado de la entrega (07/10)
+Completo según la consigna: producto, estimación con real y desvíos, arquitectura, uso de IA, código con la feature 1 (brecha) implementada y la feature 2 especificada, tests (101 unitarios; 31 e2e + 1 salteado), testing con tres casos y evidencia, bug report (BUG-01, real), matriz de riesgos, guion de demo con plan B verificado. Hallazgos conocidos sin arreglar, documentados: #13 (pestañas sin flechas), #15 (el tutorial deja clickear el fondo) y la brecha de la tarjeta (riesgos.md fila 15).
 
-Falta:
-1. QA: verificar el descongelamiento del 02/10 (`0496210` y `4bb415b`): e2e en verde, scroll bloqueado y avatar en bucle en celular a mano; anotar el hallazgo #15 (clics en el fondo con el tutorial abierto) según lo que decida Mati; actualizar las cantidades de tests en testing.md (101 unitarios, 31 e2e + 1 salteado).
-2. Mati: captura del caso 1 en celular (`docs/evidencia/caso1-happy-path-celular.png`), en horario de mercado. QA fase 2 ya cerrada el 02/10 salvo esa captura.
-3. demo.md: guion hecho el 02/10 (`577af5b`). Falta completar el [COMPLETAR] de horas del bloque 4 con el total final y cerrar las dos [DECISIÓN MATI] con el cronómetro del ensayo 1.
-4. Dos ensayos con el chat Cliente (lun 05 y mar 06).
-5. estimaciones.md: totales y filas de demo y cierre con horas.md final (PO, antes de la entrega). Al 02/10: 44,08 h reales.
-6. Revisión final: /docs se lee sin preguntar, sin claves en el historial de git, `demo-mock` en `62f9b7c` (código `4bb415b`) con deploy creado a mano y banner verificado en ventana privada.
+Antes de la demo (no cambia lo entregado): dos ensayos con el chat Cliente; después, una línea en docs/horas.md y la fila de ensayos en docs/estimaciones.md.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

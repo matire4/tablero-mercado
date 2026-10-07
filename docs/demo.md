@@ -76,9 +76,9 @@ Guion de clics exacto. Tiempos acumulados dentro del bloque. Todo en la pestaña
 
 **Plan B en el bloque 3.** Si producción falla de un modo que no se puede mostrar como estado de error (varias tarjetas caídas, página que no carga, red), pasar a la **pestaña 2** y decir: "uno de los proveedores no responde; paso a la versión con datos de demostración, que es la que ven: tiene el banner". Cambiar de pestaña lleva 5 segundos; el banner "Datos de demostración, no reflejan el mercado" explica solo lo que se está viendo. En esa versión se hacen los mismos clics 5 a 9 (el tutorial también se abre, si es primera visita). Si falla **solo** la fuente de noticias, no se activa el plan B: el panel dice "una de las fuentes no respondió" y el resto del tablero sigue; se muestra tal cual (fila 8). Detalle técnico y verificación del plan B: sección "Plan B (verificado el 01/10)", al final.
 
-[DECISIÓN MATI] Tutorial: el guion lo recorre completo en ~40 s porque deja presentados brecha, mercado cerrado y demora de noticias antes de mostrarlos en vivo. La alternativa es dejar el saludo y tocar **Saltar** (15 s), ganando 25 s para el gráfico. Se decide después del primer ensayo con cronómetro.
+**Decisión (07/10): tutorial completo**, en ~40 s, porque deja presentados brecha, mercado cerrado y demora de noticias antes de mostrarlos en vivo. Si al terminar el paso 3 de la tabla el reloj marca más de 1:10, se toca **Saltar** (está en la columna "Si falla en vivo"). Se revisa con el cronómetro de los ensayos.
 
-[DECISIÓN MATI] Celular: el guion usa la emulación en una pestaña ya cargada (misma vista que los tests). La alternativa es compartir el teléfono real: convence más, pero depende de que la duplicación de pantalla ande en el momento.
+**Decisión (07/10): celular por emulación** en una pestaña ya cargada (la misma vista que los tests e2e en Pixel 7). Se descartó compartir el teléfono real: convence más, pero depende de que la duplicación de pantalla ande en el momento.
 
 ### Bloque 4 · Decisiones que tomamos y descartamos — 3 min (11:00 a 14:00)
 
@@ -98,15 +98,15 @@ Reparto del bloque: 1:30 las tres que tomamos, 0:45 las tres que descartamos, 0:
 
 **Estimado vs real** (45 s, acá, no escondido):
 
-[DECIR] "Congelé la estimación antes de escribir código: entre 26,5 y 38 horas, con un escenario realista declarado de 30 a 32. El trabajo real va a cerrar en [COMPLETAR desde `horas.md` al cerrar la demo: al 01/10 el registro sumaba 35,83 h, sin la última sesión de QA ni demo y ensayos]. El desvío no vino de lo que estimé: el desarrollo congelado se hizo por debajo del rango (10 horas contra 13 a 19). Vino de dos cosas que decidí agregar después de congelar, cada una anotada con su costo: el diseño (tema, entrada, tutorial; 3 a 4 horas) y el avatar del tutorial (4 horas en tres vueltas). Con eso, el escenario realista pasó a 37,5-41,5 horas, y ahí estamos. Lo que aprendí: congelar el alcance no congela las ganas de mejorar el producto; lo que hizo legible el desvío fue anotar cada agregado en el momento, con su costo, y no mezclarlo con la estimación original."
+[DECIR] "Congelé la estimación antes de escribir código: entre 26,5 y 38 horas, con un escenario realista declarado de 30 a 32. El alcance que congelé se hizo en unas 32 horas, dentro del rango, y el desarrollo de ese alcance en 10, por debajo de lo estimado. El total hasta la entrega fue de unas 46 horas, sin contar los ensayos de esta demo. La diferencia está toda anotada, con su causa, en tres partes: lo que decidí agregar después de congelar (diseño, tutorial con avatar y un ajuste del tutorial: unas 10 horas), los arreglos de lo que encontraron las pruebas (casi 4 horas, que el estimado no preveía) y las sesiones de cierre, que anoté por reloj con las esperas adentro. Lo que aprendí: congelar el alcance no congela las ganas de mejorar el producto; lo que hizo legible el desvío fue anotar cada agregado en el momento, con su costo, y no mezclarlo con la estimación original."
 
 ### Bloque 5 · Cómo aseguramos la calidad — 2 min (14:00 a 16:00)
 
-[PANTALLA] Producción quieta, o una diapositiva con cuatro números: 98 · 29 · 82 · 0.
+[PANTALLA] Producción quieta, o una diapositiva con cuatro números: 101 · 31 · 82 · 0.
 
 [DECIR]
-- **98 pruebas automáticas del código** (datos, calendario de mercado, brecha, gráfico). En lenguaje llano: probamos qué pasa cuando la fuente se cae, cuando tarda demasiado, cuando devuelve basura, cuando devuelve la mitad de los datos y cuando no devuelve nada. En todos los casos el tablero avisa; nunca inventa un número.
-- **29 pruebas automáticas en el navegador**, en escritorio y celular, una por cada criterio que escribimos antes de programar: las cinco tarjetas, el gráfico, las noticias, mercado cerrado, fuente caída, sin datos, celular sin cortes, y los cinco criterios de la brecha.
+- **101 pruebas automáticas del código** (datos, calendario de mercado, brecha, gráfico). En lenguaje llano: probamos qué pasa cuando la fuente se cae, cuando tarda demasiado, cuando devuelve basura, cuando devuelve la mitad de los datos y cuando no devuelve nada. En todos los casos el tablero avisa; nunca inventa un número.
+- **31 pruebas automáticas en el navegador**, en escritorio y celular, una por cada criterio que escribimos antes de programar: las cinco tarjetas, el gráfico, las noticias, mercado cerrado, fuente caída, sin datos, celular sin cortes, y los cinco criterios de la brecha.
 - **Un bug real, encontrado y arreglado.** Cuando una fuente de noticias falló en producción, el usuario vio lo correcto (menos notas y el aviso), pero nosotros no podíamos saber por qué había fallado: el tablero no dejaba rastro. Se arregló, se verificó en producción y quedó documentado. Lo cuento porque es lo que va a pasar en el banco: lo importante no es que no falle, es que cuando falle el usuario vea algo honesto y el equipo pueda saber qué pasó.
 - **Medición independiente en celular** (Lighthouse de Google): rendimiento 82 sobre 100, accesibilidad 97, prácticas recomendadas y posicionamiento 100. Y un recorrido completo solo con teclado, sin mouse: 15 de 15 pasos bien.
 - **Cero claves en el historial del código.** La única clave de acceso a un proveedor vive en el servidor, no en el navegador del usuario, y se revisó todo el historial del repositorio: no hay ninguna.
@@ -154,7 +154,7 @@ Porque cada número dice de dónde viene y de cuándo es, y porque cuando no lo 
 Las tarjetas de esa fuente muestran "no pudimos obtener el dato" y "se reintenta cada minuto"; las demás siguen con su valor y su hora. El gráfico y las noticias tienen cada uno su propio aviso, así que una fuente caída nunca tira todo el tablero. Pasó en producción con las noticias el 29/09 y el usuario vio menos notas con un aviso, no un error.
 
 **¿Cuánto sale mantener esto con 10.000 usuarios?**
-El costo de los datos no crece con los usuarios: el tablero guarda cada respuesta un rato y la comparte entre todos los que miran, así que el proveedor recibe la misma cantidad de consultas con 10 o con 10.000 personas. Los costos fijos para producción son el plan pago de noticias (€49,99/mes) y pasar el alojamiento a un plan comercial [a verificar el precio del plan de Vercel según el uso del banco]. Lo que sí hay que decidir antes de escalar es una fuente de cotizaciones con contrato.
+El costo de los datos no crece con los usuarios: el tablero guarda cada respuesta un rato y la comparte entre todos los que miran, así que el proveedor recibe la misma cantidad de consultas con 10 o con 10.000 personas. Los costos fijos para producción son el plan pago de noticias (€49,99/mes) y pasar el alojamiento a un plan comercial: el plan gratuito de Vercel que usa hoy es solo para uso personal no comercial; el plan Pro cuesta USD 20 por usuario desarrollador por mes más el uso (verificado en la documentación de Vercel el 07/10), o se aloja en la infraestructura del banco. Lo que sí hay que decidir antes de escalar es una fuente de cotizaciones con contrato.
 
 **¿Por qué no hiciste la otra funcionalidad?**
 Porque con el presupuesto entraba una funcionalidad hecha y bien probada, y elegí la que se calcula con datos que ya están en el tablero y responde la pregunta que el usuario argentino se hace solo: cuánto se aleja cada dólar del oficial. El detalle por activo quedó especificado, con criterios de aceptación escritos, para que la próxima iteración arranque sin volver a definirlo. Es la decisión que les pido al final.
@@ -168,8 +168,17 @@ Técnicamente sí, hoy mismo; comercialmente no, por tres cosas que están lista
 **¿Qué hace la IA acá?**
 En el producto, nada: no hay ningún modelo respondiendo ni clasificando; las noticias se filtran por palabras fijas del título, y así está declarado. La IA se usó para construirlo: como equipo de producto, arquitectura, desarrollo y pruebas con roles separados, con cada decisión y cada corrección anotadas en un registro. Descarté meter IA en el producto por riesgo legal y porque contradice al usuario que quiere ver el dólar de un vistazo.
 
-**¿Por qué un avatar tuyo?**
-Para darle entidad al producto en esta demo. Son tres clips cortos, decorativos: no llevan información que no esté en el texto, y quien tiene la animación reducida en su teléfono ve una imagen fija. En el banco se reemplazan por su mascota o se sacan sin tocar la lógica del tutorial; está pensado para eso.
+**¿Por qué un avatar tuyo, y por qué antes que la otra funcionalidad?**
+El tutorial no es una funcionalidad de datos: explica las que ya están, y responde al riesgo que más pesa, que el usuario no entienda o no se fíe del tablero. El tutorial base costó poco más de una hora. El avatar fueron cuatro horas para darle entidad a esta demo; con honestidad, esas horas podrían haber ido a la funcionalidad de detalle por activo, que de todos modos no entraba completa. Lo elegí sabiendo el costo y lo anoté aparte. En el banco se reemplaza por su mascota o se saca sin tocar la lógica, y quien tiene la animación reducida en el teléfono ve una imagen fija.
+
+**La brecha de la tarjeta da 30 %. ¿Es real?**
+No es una brecha de mercado: el dólar tarjeta es el oficial más un recargo impositivo, así que esa diferencia es fija y su línea es plana. Es útil (cuánto más pagás si comprás con tarjeta), pero rotulada igual que la del blue puede confundir. Lo encontré en la revisión final, está documentado como riesgo y el primer paso de la próxima iteración es rotularla como recargo.
+
+**Las noticias de hoy son de Japón y de Wall Street. ¿Le sirven a mi cliente?**
+Es el límite del plan gratuito y del filtro por palabras: en inglés casi no hay notas sobre Argentina con esos temas en el título, y en español el plan devuelve las diez más recientes, que suelen ser de un mismo medio. El tablero muestra el medio y la hora de cada nota para que se vea. Con el plan pago, o con un proveedor que filtre por país y sección, mejora; está en próximos pasos.
+
+**Estimaste 30 horas y tardaste 46. ¿Por qué te creería la próxima estimación?**
+Porque lo que estimé se cumplió: el alcance congelado se hizo dentro del rango. Lo que sumó fue lo que agregué después y los arreglos de las pruebas, y cada cosa está anotada con su costo en el momento en que pasó. La próxima estimación ya incluye una fila para los ciclos de arreglo y verificación, que esta no tenía.
 
 ---
 
