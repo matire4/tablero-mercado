@@ -4,7 +4,7 @@ Una línea por sesión, anotada al terminar la sesión (no reconstruida al final
 
 Las líneas marcadas *(aprox.)* son anteriores al inicio del registro y se anotaron de memoria. Las marcadas *(reconstr.)* se completaron el 29/09: Mati estimó 8 h de desarrollo en total y se repartieron por bloque según los commits del 28/09 y la madrugada del 29/09. El resto es tiempo real.
 
-Entrega: propuesta el 28/09 para el miércoles 07/10/2026 (día 9). Demo reprogramada para el martes 13/10; la fecha de entrega del repo se confirma con Rubika el 06/10.
+Entrega: propuesta el 28/09 para el miércoles 07/10/2026 (día 9). Rubika la movió al lunes 12/10; demo el martes 13/10. La documentación quedó cerrada el 07/10, antes de la fecha original.
 
 | Fecha | Entregable | Horas | Nota |
 | --- | --- | --- | --- |

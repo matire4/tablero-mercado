@@ -58,7 +58,7 @@ El trabajo sobre el repo se hizo con Claude (Cowork) con la carpeta conectada: l
 
 ### Datos del proyecto mal copiados
 
-- **Entrega "08/10" en `CLAUDE.md`** (Tech Lead, 29/09). La fecha propuesta a Rubika el 28/09 fue el miércoles 07/10; el 08/10 era el día 10 contado desde el 28/09 (después, la demo se reprogramó al martes 13/10). En el mismo archivo, una línea contradecía una decisión cerrada (días hábiles en la variación del día). *Cómo se detectó:* al abrir un chat nuevo de Tech Lead, releyendo `CLAUDE.md` contra el código y el mail. *Qué quedó:* corregido en `CLAUDE.md` y `horas.md`.
+- **Entrega "08/10" en `CLAUDE.md`** (Tech Lead, 29/09). La fecha propuesta a Rubika el 28/09 fue el miércoles 07/10; el 08/10 era el día 10 contado desde el 28/09 (después, Rubika movió la entrega al lunes 12/10 y la demo al martes 13/10). En el mismo archivo, una línea contradecía una decisión cerrada (días hábiles en la variación del día). *Cómo se detectó:* al abrir un chat nuevo de Tech Lead, releyendo `CLAUDE.md` contra el código y el mail. *Qué quedó:* corregido en `CLAUDE.md` y `horas.md`.
 
 ### Al revés: donde verificar evitó el error
 

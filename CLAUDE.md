@@ -2,7 +2,7 @@
 
 ## Estado
 Fase actual: entrega y demo. Producto cerrado el 26/09/2026; desarrollo y QA cerrados el 01/10; código congelado en `4bb415b` el 02/10; documentación cerrada el 07/10.
-Fechas: el 28/09 se propuso a Rubika entregar el miércoles 07/10; la demo quedó para el martes 13/10. Horas reales: 46,08 al 07/10, sin los ensayos de la demo (docs/horas.md; reparto y desvíos en docs/estimaciones.md). Estimado congelado: 26,5-38 h; realista declarado 30-32; con todo el alcance agregado, 39,5-43,5.
+Fechas: el 28/09 se propuso a Rubika entregar el miércoles 07/10; Rubika movió la entrega al lunes 12/10 y la demo al martes 13/10. Horas reales: 46,08 al 07/10, sin los ensayos de la demo (docs/horas.md; reparto y desvíos en docs/estimaciones.md). Estimado congelado: 26,5-38 h; realista declarado 30-32; con todo el alcance agregado, 39,5-43,5.
 Código congelado el 01/10 en el commit `db46eb5`; descongelado el 02/10 para dos arreglos del tutorial; congelado de nuevo en `4bb415b`. Cambios solo por bug bloqueante, con entrada en docs/ai-log.md y docs/bug-report.md.
 
 URL pública: https://tablero-mercado.vercel.app (deploy automático en cada push a main). Plan B de la demo: https://tablero-mercado-git-demo-mock-matias-projects-d0bd5617.vercel.app (rama `demo-mock` en modo mock; ver docs/demo.md, "Plan B").
