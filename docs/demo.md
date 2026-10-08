@@ -1,6 +1,6 @@
 # Demo
 
-Guion de la demo de 20 minutos para el gerente de producto digital del banco (no técnico), seguida de preguntas del equipo técnico de Rubika. Escrito el 02/10 en la fase Demo sobre el código congelado (`db46eb5`). Las notas que se juntaron durante el desarrollo y la sección "Plan B (verificado el 01/10)" están al final, tal como se anotaron.
+Guion de la demo de 20 minutos para el gerente de producto digital del banco (no técnico), seguida de preguntas del equipo técnico de Rubika. Escrito el 02/10 en la fase Demo sobre el código congelado (`4bb415b`, desde el 02/10). Las notas que se juntaron durante el desarrollo y la sección "Plan B (verificado el 01/10)" están al final, tal como se anotaron.
 
 **Regla del guion:** cada bloque se cuenta en términos de lo que gana el cliente del banco. La parte técnica va en el apéndice "Si preguntan", al final. Lo que aparece como [PANTALLA] es lo que tiene que estar visible en ese momento; [DECIR] es texto sugerido, no para leer literal.
 
